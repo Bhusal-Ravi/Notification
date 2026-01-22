@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
 import testRoute from './routes/test.js'
 import { Queue, Worker } from 'bullmq'
+import { enqueueMessage } from './queue/telegramMessage.js'
 dotenv.config()
 
 
@@ -11,7 +12,7 @@ const app= express()
 dbConnect()
 
 // Setup Queue and Worker
-const connection = {
+ export const connection = {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT || 6379
 };
@@ -20,10 +21,17 @@ let count = 0;
 
 
 
-export const notificationQueue = new Queue('hello', { connection });
-export const notificationWorker = new Worker('hello', async job => {
-    count++;
-    console.log(`Count: ${count}`, job.data, job.name);
+export const telegramQueue= new Queue ('telegramMessage',{connection})
+
+
+export const notificationQueue = new Queue('schedular', { connection });
+export const notificationWorker = new Worker('schedular', async job => {
+   
+    console.log("Telegram Message Initiated")
+    await enqueueMessage()
+    
+
+
 }, { connection,
     removeOnFail:{count:100},
     removeOnComplete:{count:10},
