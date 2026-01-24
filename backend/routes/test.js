@@ -1,6 +1,6 @@
 import express from 'express'
 const router= express.Router()
-import { client } from '../config/dbConnection.js'
+import { pool } from '../config/dbConnection.js'
 import { notificationQueue } from '../server.js'
 
 

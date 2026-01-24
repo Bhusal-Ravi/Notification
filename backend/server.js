@@ -1,14 +1,24 @@
 import express from 'express'
+import cors from 'cors'
+import dns from 'dns';
+
+
 import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
 import testRoute from './routes/test.js'
 import { Queue, Worker } from 'bullmq'
-import { enqueueMessage } from './queue/telegramMessage.js'
+import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
+import './services/telegram.js'
 dotenv.config()
 
-
+dns.setDefaultResultOrder('ipv4first');
 const port=3000
 const app= express()
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 dbConnect()
 
 // Setup Queue and Worker
@@ -27,8 +37,17 @@ export const telegramQueue= new Queue ('telegramMessage',{connection})
 export const notificationQueue = new Queue('schedular', { connection });
 export const notificationWorker = new Worker('schedular', async job => {
    
-    console.log("Telegram Message Initiated")
-    await enqueueMessage()
+    
+    
+    if(job.name==='DrinkWater'){
+        console.log(`Water Notification Enqueued`)
+        await enqueueWaterMessage()
+        }
+
+          if(job.name==='Exercise'){
+        console.log(`Exercise Notification Enqueued`)
+        await enqueueExerciseMessage()
+        }
     
 
 
@@ -56,13 +75,24 @@ notificationWorker.on('error', err => {
 
 // Setup recurring job
 await notificationQueue.upsertJobScheduler(
-    'repeatingJob',
+    'WaterJob',
     {
         pattern: '* * * * *', // Every minute
     },
     {
-        name: 'repeat',
-        data: { message: 'Recurring notification check' }
+        name: 'DrinkWater',
+        data: { message: 'Drink Water please'}
+    }
+);
+
+await notificationQueue.upsertJobScheduler(
+    'Exercise',
+    {
+        pattern: '*/2 * * * *', // Every minute
+    },
+    {
+        name: 'Exercise',
+        data: { message: 'Exercise Enqueing'}
     }
 );
 
