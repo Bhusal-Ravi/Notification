@@ -7,6 +7,7 @@ import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
 import testRoute from './routes/test.js'
 import { Queue, Worker } from 'bullmq'
+import { connection } from './config/redisConnection.js'
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
 import './services/telegram.js'
 dotenv.config()
@@ -22,18 +23,6 @@ app.use(cors({
 dbConnect()
 
 // Setup Queue and Worker
- export const connection = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379
-};
-
-let count = 0;
-
-
-
-export const telegramQueue= new Queue ('telegramMessage',{connection})
-
-
 export const notificationQueue = new Queue('schedular', { connection });
 export const notificationWorker = new Worker('schedular', async job => {
    

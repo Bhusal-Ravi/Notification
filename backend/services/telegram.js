@@ -10,8 +10,7 @@ export const bot= new TelegramBot(token,{polling:true})
 bot.setMyCommands([
   { command: 'start', description: 'Start the bot' },
   { command: 'help', description: 'List all commands' },
-  { command: 'echo', description: 'Echo your message' },
-  { command: 'status', description: 'Check status' },
+  { command: 'status', description: 'Check your status' },
   { command: 'water', description: 'Enable Drink Water reminders at regular intervals of 1 hour' },
   { command: 'exercise', description: 'Enable Daily Exercise reminders sent every day at 3:45 PM.' },
   { command: 'study', description: 'Enable Study reminders sent every day.' },
@@ -43,7 +42,7 @@ bot.onText(/\/help/,async  (msg) => {
 
 Use the commands below to register for notifications and manage your tasks:
 
-Caution: You need to /startNotify in order to activate other command
+Caution: /activateNotify <registered-email> in order to activate other command
 
 /activateNotify <your-registered-email> — Register yourself with our service to start receiving notifications.
 
@@ -105,11 +104,11 @@ bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
   await client.query('ROLLBACK');
       console.log(err)
   if (err.message === 'EMAIL_NOT_REGISTERED') {
-    bot.sendMessage(chatId, '❌ Email not registered with us');
+   await  bot.sendMessage(chatId, '❌ Email not registered with us');
   } else if (err.message === 'TELEGRAM_ALREADY_LINKED') {
-    bot.sendMessage(chatId, '⚠️ This Telegram account is already linked');
+   await  bot.sendMessage(chatId, '⚠️ This Telegram account is already linked');
   } else {
-    bot.sendMessage(chatId, '❌ Something went wrong');
+   await  bot.sendMessage(chatId, '❌ Something went wrong');
   }
 }finally {
   client.release();
@@ -121,7 +120,7 @@ bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
 bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
   const chatId = msg.chat.id;
   const telegramUserId=msg.from.id
-  console.log(telegramUserId)
+  
   const command = match[1].toLowerCase(); 
 
   const client = await pool.connect();
@@ -146,9 +145,9 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
         console.log('activate: ',activate.rows)
         if(activate.rowCount===0){
-          bot.sendMessage(chatId,`You have already activated water notification`)
+         await  bot.sendMessage(chatId,`You have already activated water notification`)
         } else if(activate.rowCount===1 ){
-           bot.sendMessage(chatId,`Successfully activated water notification`)
+         await  bot.sendMessage(chatId,`Successfully activated water notification`)
         }
         await client.query('COMMIT');
     }
@@ -171,9 +170,9 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
         console.log('activate: ',activate.rows)
         if(activate.rowCount===0){
-          bot.sendMessage(chatId,`You have already activated exercise notification`)
+         await bot.sendMessage(chatId,`You have already activated exercise notification`)
         } else if(activate.rowCount===1 ){
-           bot.sendMessage(chatId,`Successfully activated exercise notification`)
+         await  bot.sendMessage(chatId,`Successfully activated exercise notification`)
         }
         await client.query('COMMIT');
     }
@@ -196,9 +195,9 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
         console.log('activate: ',activate.rows)
         if(activate.rowCount===0){
-          bot.sendMessage(chatId,`You have already activated Study notification`)
+        await  bot.sendMessage(chatId,`You have already activated Study notification`)
         } else if(activate.rowCount===1 ){
-           bot.sendMessage(chatId,`Successfully activated Study notification`)
+         await  bot.sendMessage(chatId,`Successfully activated Study notification`)
         }
         await client.query('COMMIT');
     }
@@ -206,9 +205,96 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
     catch(error){
       await client.query('ROLLBACK');
       console.log(error)
-      bot.sendMessage(chatId,'Something went wrong')
+    await  bot.sendMessage(chatId,'Something went wrong')
   }
 
   
 });
+
+
+bot.onText(/\/input\s+(.+)/, async  (msg,match) => {
+
+const chatId= msg.chat.id
+const telegramUserId=msg.from.id
+const command= msg.text.split(' ')[0]?.toLowerCase()
+const message=msg.text.split(' ')[1]?.toLowerCase()
+
+const client= await pool.connect()
+ 
+  if(!['water', 'exercise', 'study'].includes(message)){ 
+    return await bot.sendMessage(chatId,`If you want to register your performed task
+these are the available commands 
+[ 1) /input water ]
+[ 2) /input exercise ]
+[ 3) /input study ]`)
+  }
+
+  await client.query('BEGIN')
+
+
+        try{
+
+          
+          const userCheck= await client.query(`select 1 from userinfo u
+                                                join taskuser tu 
+                                                on u.userid=tu.userid
+                                                join telegramusers t 
+                                                on t.userid=u.userid
+                                                where tu.taskid=$1 and 
+                                                tu.isactive=$2 and 
+                                                t.telegram_user_id=$3`,[message==='water'?1:message==='exercise'?2:3,true,telegramUserId])
+          
+          if(userCheck.rowCount===0){
+         return  await  bot.sendMessage(chatId,`❌ You might not be registered with us
+or You may not have activated the particular service `)
+          }
+
+          const updateUserActivity= await client.query(`update taskuser
+                                                        set last_user_activity=now()
+                                                        where userid=(select userid 
+                                                        from telegramusers where telegram_user_id=$1)
+                                                        and taskid=$2 and isactive=$3`,[telegramUserId,message==='water'?1:message==='exercise'?2:3,true])
+                                                                  
+
+          
+
+          if(updateUserActivity.rowCount===0){
+           throw new Error(`updateUserActivity_error`)
+          }
+
+          const activityCountUpdate= await client.query(`insert into taskactivity(userid,taskid)
+                                                        values(
+                                                        (select userid 
+                                                        from telegramusers 
+                                                        where telegram_user_id=$1),
+                                                        $2
+                                                        )`,[telegramUserId,message==='water'?1:message==='exercise'?2:3])
+            if(activityCountUpdate.rowCount===0){
+           throw new Error(`activityCountUpdate_error`)
+          }else {
+            await bot.sendMessage(chatId,`✅ Successfully updated your ${message} activity input`)
+          }
+
+                
+          await client.query('COMMIT')
+          
+          }catch(error){
+            await client.query('ROLLBACK')
+
+           
+              await bot.sendMessage(chatId,'❌ Could not perform your task at the moment')
+            
+          
+            
+            
+        }
+
+
+
+  
+
+
+
+
+})
 
