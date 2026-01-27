@@ -3,43 +3,27 @@ import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
 import { connection } from "../config/redisConnection.js"
 import { bot } from "../services/telegram.js"
+import { exerciseReminders, waterReminders } from "../services/messages.js"
 
 
 const telegramQueue = new Queue('telegram', { connection })
 const telegramWorker = new Worker(
     'telegram',
     async job => {
-        const { chat_id, fname, lname, taskname } = job.data
+        const { chat_id, fname, lname, taskname,days,hours, minutes,present_time,next_notify_time } = job.data
 
         if (taskname === 'Drink Water') {
-            await bot.sendMessage(
-                chat_id,
-                `💧 Water Intake Reminder ⏰
+             const reminderTemplates = waterReminders({ fname, lname, days, hours, minutes, present_time, next_notify_time })
+            const message = reminderTemplates[Math.floor(Math.random() * reminderTemplates.length)]
 
-Hello ${fname} ${lname} 👋,
-
-This is a gentle reminder to stay hydrated and complete your scheduled water intake 💙.
-
-Please take a moment to drink water now 🚰🥤  
-Your health and well-being matter 🌱✨
-
-Stay healthy and take care 😊`
-            )
+            await bot.sendMessage(chat_id, message)
         }
 
         if (taskname === 'Daily Exercise') {
+              const reminderTemplates = exerciseReminders({ fname, lname, days, hours, minutes, present_time, next_notify_time })
+            const message = reminderTemplates[Math.floor(Math.random() * reminderTemplates.length)]
             await bot.sendMessage(
-                chat_id,
-                `🏃‍♂️ Daily Exercise Reminder ⏰
-
-Hello ${fname} ${lname} 👋,
-
-This is a friendly reminder to complete your daily exercise and stay physically active 💪.
-
-Regular movement helps improve your energy, focus, and overall well-being 🧠✨  
-Please take some time today to exercise and care for your health 🏋️‍♀️🤸‍♂️
-
-Stay active and stay healthy 🌱😊`
+                chat_id,message
             )
         }
     },
@@ -55,7 +39,20 @@ Stay active and stay healthy 🌱😊`
     }
 )
 
-telegramWorker.on('completed', job => {
+telegramWorker.on('completed',async  job => {
+    const client= await pool.connect()
+    const { userid,taskid } = job.data
+
+    const lastcheckUpdate=await client.query(`update taskuser
+                        set lastcheck=now()
+                        where userid=$1
+                        and taskid=$2`,[userid,taskid])
+
+    client.release()
+    if(lastcheckUpdate.rowCount>0){
+        console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
+    }
+
     console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
 })
 
@@ -70,14 +67,23 @@ telegramWorker.on('error', err => {
 export async function enqueueWaterMessage(){
     const client= await pool.connect()
     try {
-        const users= await client.query(`select u.fname,u.lname,t.chat_id,taskname from userInfo u
+        const users= await client.query(`select 
+                                        TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+                                        TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
+                                        extract (day from now()-tu.last_user_activity)  as days,
+                                        extract ( hour from now()-tu.last_user_activity)  as hours,
+                                        extract ( minute from now()-tu.last_user_activity)  as minutes,
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname from userInfo u
                                          join telegramusers t
                                          on t.userid=u.userid
                                          join taskuser tu
                                          on  tu.userid=u.userid
 										 join task tt
 										 on tt.taskid=tu.taskid
-										 where tu.isactive=$1 and tt.taskid=$2`,[true,1])
+										 where tu.isactive=$1 and tt.taskid=$2
+                                         and now()- tu.last_user_activity>= tu.notify_after
+                                         and now()-lastcheck>= tu.notify_after
+                                         `,[true,1])
 
                 
                
@@ -86,9 +92,23 @@ export async function enqueueWaterMessage(){
 
                     await telegramQueue.add(
                         `water notify chatid: ${user.chat_id}`,{chat_id:user.chat_id,
+                                                                userid:user.userid,
                                                                 taskname:user.taskname,
                                                                 fname:user.fname,
-                                                                lname:user.lname}
+                                                                lname:user.lname,
+                                                                taskid:user.taskid,
+                                                                days:user.days,
+                                                                hours:user.hours,
+                                                                minutes:user.minutes,
+                                                                present_time:user.present_time,
+                                                                next_notify_time:user.next_notify_time
+                                                            },{
+                                                                    attempts:3,
+                                                                    backoff:{
+                                                                        type:'fixed',
+                                                                        delay:3000
+                                                                    },
+                                                                }
                     )
                 }
     }catch(error){
@@ -103,7 +123,12 @@ export async function enqueueWaterMessage(){
 export async function enqueueExerciseMessage(){
     const client=await  pool.connect()
      try {
-        const users= await client.query(`select u.fname,u.lname,t.chat_id,tt.taskname, from userInfo u
+        const users= await client.query(`select	TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+                                        TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
+                                        extract (day from now()-tu.last_user_activity)  as days,
+                                        extract ( hour from now()-tu.last_user_activity)  as hours,
+                                        extract ( minute from now()-tu.last_user_activity)  as minutes,
+										tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname from userInfo u
                                          join telegramusers t
                                          on t.userid=u.userid
                                          join taskuser tu
@@ -111,8 +136,14 @@ export async function enqueueExerciseMessage(){
 										 join task tt
 										 on tt.taskid=tu.taskid
 										 where tu.isactive=$1 and tt.taskid=$2
-                                         and now()- tu.last_user_activity>= tu.notify_after
-                                         and now()-lastcheck>= to.notify_after
+										 and now()>= (
+										 (
+											date_trunc('day',now() at time zone tu.timezone)
+											+ tu.fixed_notify_time
+											)at time zone tu.timezone
+										 ) 
+                                         
+                                         and now()-lastcheck>= tu.notify_after
                                          `,[true,2])
 
                 
@@ -122,9 +153,16 @@ export async function enqueueExerciseMessage(){
 
                     await telegramQueue.add(
                         `exercise notify chatid: ${user.chat_id}`,{chat_id:user.chat_id,
+                                                                userid:user.userid,
                                                                 taskname:user.taskname,
                                                                 fname:user.fname,
-                                                                lname:user.lname},{
+                                                                lname:user.lname,
+                                                                taskid:user.taskid,
+                                                                days:user.days,
+                                                                hours:user.hours,
+                                                                minutes:user.minutes,
+                                                                present_time:user.present_time,
+                                                                next_notify_time:user.next_notify_time},{
                                                                     attempts:3,
                                                                     backoff:{
                                                                         type:'fixed',

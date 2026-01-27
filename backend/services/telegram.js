@@ -14,6 +14,7 @@ bot.setMyCommands([
   { command: 'water', description: 'Enable Drink Water reminders at regular intervals of 1 hour' },
   { command: 'exercise', description: 'Enable Daily Exercise reminders sent every day at 3:45 PM.' },
   { command: 'study', description: 'Enable Study reminders sent every day.' },
+  { command: 'input', description: 'Input performed task e.g. /input water, /input exercise' },
 ]);
 
 bot.onText(/\/start/,async  (msg) => {
@@ -200,10 +201,12 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
          await  bot.sendMessage(chatId,`Successfully activated Study notification`)
         }
         await client.query('COMMIT');
+        client.release()
     }
   }
     catch(error){
       await client.query('ROLLBACK');
+      client.release()
       console.log(error)
     await  bot.sendMessage(chatId,'Something went wrong')
   }
@@ -233,8 +236,6 @@ these are the available commands
 
 
         try{
-
-          
           const userCheck= await client.query(`select 1 from userinfo u
                                                 join taskuser tu 
                                                 on u.userid=tu.userid
@@ -249,18 +250,18 @@ these are the available commands
 or You may not have activated the particular service `)
           }
 
+          
           const updateUserActivity= await client.query(`update taskuser
                                                         set last_user_activity=now()
                                                         where userid=(select userid 
                                                         from telegramusers where telegram_user_id=$1)
                                                         and taskid=$2 and isactive=$3`,[telegramUserId,message==='water'?1:message==='exercise'?2:3,true])
-                                                                  
-
-          
+            
 
           if(updateUserActivity.rowCount===0){
            throw new Error(`updateUserActivity_error`)
           }
+          
 
           const activityCountUpdate= await client.query(`insert into taskactivity(userid,taskid)
                                                         values(
@@ -277,24 +278,13 @@ or You may not have activated the particular service `)
 
                 
           await client.query('COMMIT')
+          client.release()
           
           }catch(error){
             await client.query('ROLLBACK')
-
+            client.release()
            
               await bot.sendMessage(chatId,'❌ Could not perform your task at the moment')
-            
-          
-            
-            
         }
-
-
-
-  
-
-
-
-
 })
 
