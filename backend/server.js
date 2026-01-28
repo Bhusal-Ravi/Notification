@@ -9,9 +9,11 @@ import testRoute from './routes/test.js'
 import { Queue, Worker } from 'bullmq'
 import { connection } from './config/redisConnection.js'
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
+import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
+import {checkEmail } from  './services/gmail.js'
 dotenv.config()
-
+checkEmail()
 dns.setDefaultResultOrder('ipv4first');
 const port=3000
 const app= express()
@@ -25,7 +27,8 @@ dbConnect()
 // Setup Queue and Worker
 export const notificationQueue = new Queue('schedular', { connection });
 export const notificationWorker = new Worker('schedular', async job => {
-   
+    
+    console.log(job.name)
     
     
     if(job.name==='DrinkWater'){
@@ -37,13 +40,19 @@ export const notificationWorker = new Worker('schedular', async job => {
         console.log(`Exercise Notification Enqueued`)
         await enqueueExerciseMessage()
         }
+
+        if(job.name==='MidNight_Report'){
+            console.log(`MidNight_Report Notification Enqueued`)
+            await enqueueMindNightReport()
+
+        }
     
 
 
 }, { connection,
     removeOnFail:{count:100},
     removeOnComplete:{count:10},
-    concurrency:5,
+    concurrency:10,
     limiter:{
         max:10,
         duration:1000
@@ -85,6 +94,17 @@ await notificationQueue.upsertJobScheduler(
     }
 );
 
+
+await notificationQueue.upsertJobScheduler(
+    'MidNight_Report',
+    {
+        pattern: '0 */1 * * *', // Every hour
+    },
+    {
+        name: 'MidNight_Report',
+        data: { message: 'MidNight Report Enqueing'}
+    }
+);
 
 
 app.use('/api',testRoute)
