@@ -123,7 +123,7 @@ export async function enqueueWaterMessage(){
 export async function enqueueExerciseMessage(){
     const client=await  pool.connect()
      try {
-        const users= await client.query(`select	TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+        const users= await client.query(`select	fixed_notify_time as next_notify_time, 
                                         TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
                                         extract (day from now()-tu.last_user_activity)  as days,
                                         extract ( hour from now()-tu.last_user_activity)  as hours,
@@ -142,6 +142,7 @@ export async function enqueueExerciseMessage(){
 											+ tu.fixed_notify_time
 											)at time zone tu.timezone
 										 ) 
+                                            and (now() at time zone tu.timezone)::time between tu.fixed_notify_time and tu.fixed_notify_time + interval '5 minutes'
                                          
                                          and now()-lastcheck>= tu.notify_after
                                          `,[true,2])

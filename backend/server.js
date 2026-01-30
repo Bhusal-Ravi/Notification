@@ -86,7 +86,7 @@ await notificationQueue.upsertJobScheduler(
 await notificationQueue.upsertJobScheduler(
     'Exercise',
     {
-        pattern: '*/2 * * * *', // Every minute
+        pattern: '* * * * *', // Every minute
     },
     {
         name: 'Exercise',
@@ -98,7 +98,7 @@ await notificationQueue.upsertJobScheduler(
 await notificationQueue.upsertJobScheduler(
     'MidNight_Report',
     {
-        pattern: '0 */1 * * *', // Every hour
+        pattern: '* * * * *', // Every hour
     },
     {
         name: 'MidNight_Report',
