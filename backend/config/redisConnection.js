@@ -1,11 +1,16 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+const clean = (value = '') => {
+    return value.trim().replace(/^['\"]+|[',\"]+$/g, '')
+}
+
 export const connection = {
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
+    username: clean(process.env.REDIS_USERNAME),
+    password: clean(process.env.REDIS_PASSWORD),
     socket: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT
+        host: clean(process.env.REDIS_HOST),
+        port: Number(clean(process.env.REDIS_PORT))
+    }
 }
-}
+
