@@ -5,14 +5,17 @@ import dns from 'dns';
 
 import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
-import testRoute from './routes/test.js'
+import healthcheckRoute from './routes/healthcheck.js'
 import { Queue, Worker } from 'bullmq'
 import { connection } from './config/redisConnection.js'
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
 import {checkEmail } from  './services/gmail.js'
-dotenv.config()
+
+if (process.env.NODE_ENV !== 'production') {
+    dotenv.config()
+}
 checkEmail()
 dns.setDefaultResultOrder('ipv4first');
 const port=3000
@@ -107,7 +110,7 @@ await notificationQueue.upsertJobScheduler(
 );
 
 
-app.use('/api',testRoute)
+app.use('/api',healthcheckRoute)
 
 
 
