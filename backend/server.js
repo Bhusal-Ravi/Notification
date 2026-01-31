@@ -17,7 +17,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv.config()
 }
 checkEmail()
-// dns.setDefaultResultOrder('ipv4first');
+dns.setDefaultResultOrder('ipv4first');
 const port=3000
 const app= express()
 app.use(cors({
