@@ -220,7 +220,7 @@ const mailOptions = {
                                                 and   taskid=5
                                                 and (tu.lastcheck at time zone tu.timezone)::date < (now() at time zone tu.timezone)::date`)
                 
-                console.log("Midnight report users",users)
+                
                         let waterCount=0
                         let exerciseCount=0
                         let studyCount=0

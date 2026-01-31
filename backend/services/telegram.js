@@ -5,7 +5,18 @@ dotenv.config()
 
 const token= process.env.TELEGRAM_TOKEN
 
-export const bot= new TelegramBot(token,{polling:true})
+export const bot = new TelegramBot(token, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  },
+  request: {
+    timeout: 60000 // 60 seconds
+  }
+})
 
 bot.setMyCommands([
   { command: 'start', description: 'Start the bot' },
