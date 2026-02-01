@@ -4,9 +4,9 @@ import { Queue, Worker } from "bullmq"
 // import { connection } from "../config/redisConnection.js"
 import { bot } from "../services/telegram.js"
 import { exerciseReminders, waterReminders } from "../services/messages.js"
-import { redis } from "../config/redisConnection.js"
+import { connection } from "../config/redisConnection.js"
 
-const telegramQueue = new Queue('telegram', { connection:redis })
+const telegramQueue = new Queue('telegram', { connection })
 const telegramWorker = new Worker(
     'telegram',
     async job => {
@@ -28,7 +28,7 @@ const telegramWorker = new Worker(
         }
     },
     {
-        connection:redis,
+        connection,
         removeOnFail: { count: 100 },
         removeOnComplete: { count: 10 },
         concurrency: 5,

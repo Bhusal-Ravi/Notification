@@ -1,9 +1,9 @@
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 
-if (process.env.NODE_ENV !== 'production') {
+
   dotenv.config()
-}
+
 
 export const transporter= nodemailer.createTransport({
     pool: true,

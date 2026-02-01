@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
-import dns from 'dns';
-import  {redis} from './config/redisConnection.js'
+import dns from 'dns'
+import { connection } from './config/redisConnection.js'
 
 
 import dotenv from 'dotenv'
@@ -17,6 +17,8 @@ import {checkEmail } from  './services/gmail.js'
 if (process.env.NODE_ENV !== 'production') {
     dotenv.config()
 }
+
+
 checkEmail()
 
 const port=3000
@@ -29,7 +31,7 @@ app.use(cors({
 dbConnect()
 
 // Setup Queue and Worker
-export const notificationQueue = new Queue('schedular', { connection:redis });
+export const notificationQueue = new Queue('schedular', { connection });
 export const notificationWorker = new Worker('schedular', async job => {
     
     console.log(job.name)
@@ -53,7 +55,7 @@ export const notificationWorker = new Worker('schedular', async job => {
     
 
 
-}, { connection:redis,
+}, { connection,
     removeOnFail:{count:100},
     removeOnComplete:{count:10},
     concurrency:10,

@@ -2,9 +2,9 @@ import TelegramBot from 'node-telegram-bot-api'
 import dotenv from 'dotenv'
 import { pool } from '../config/dbConnection.js'
 
-if (process.env.NODE_ENV !== 'production') {
+
   dotenv.config()
-}
+
 
 const token= process.env.TELEGRAM_TOKEN
 
