@@ -1,13 +1,14 @@
 import express from 'express'
 import cors from 'cors'
 import dns from 'dns';
+import  {redis} from './config/redisConnection.js'
 
 
 import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
 import healthcheckRoute from './routes/healthcheck.js'
 import { Queue, Worker } from 'bullmq'
-import { connection } from './config/redisConnection.js'
+
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
@@ -17,7 +18,7 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv.config()
 }
 checkEmail()
-dns.setDefaultResultOrder('ipv4first');
+
 const port=3000
 const app= express()
 app.use(cors({
@@ -28,7 +29,7 @@ app.use(cors({
 dbConnect()
 
 // Setup Queue and Worker
-export const notificationQueue = new Queue('schedular', { connection });
+export const notificationQueue = new Queue('schedular', { connection:redis });
 export const notificationWorker = new Worker('schedular', async job => {
     
     console.log(job.name)
@@ -52,7 +53,7 @@ export const notificationWorker = new Worker('schedular', async job => {
     
 
 
-}, { connection,
+}, { connection:redis,
     removeOnFail:{count:100},
     removeOnComplete:{count:10},
     concurrency:10,

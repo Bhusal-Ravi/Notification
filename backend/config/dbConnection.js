@@ -4,11 +4,10 @@ if (process.env.NODE_ENV !== 'production') {
     dotenv.config()
 }
 
+
+
 export const pool= new Pool({
-user: process.env.POSTGRES_USER,
-password:process.env.POSTGRES_PASSWORD,
-port:process.env.POSTGRES_PORT,
-host:process.env.POSTGRES_HOST,
+    connectionString:  process.env.POSTGRES_CONNECTION_STRING
 })
 
 export async function dbConnect(){

@@ -1,11 +1,12 @@
 
 import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
-import { connection } from "../config/redisConnection.js"
+// import { connection } from "../config/redisConnection.js"
 import { transporter } from "../services/gmail.js"
+import { redis } from "../config/redisConnection.js"
 
 
-const gmailQueue= new Queue('gmail',{connection})
+const gmailQueue= new Queue('gmail',{connection:redis})
 const gmailWorker= new Worker('gmail',async job=>{
     const {waterCount,exerciseCount,studyCount,fname,lname,email,today_date} = job?.data
 
@@ -178,7 +179,7 @@ const mailOptions = {
 
     
 },{
-        connection,
+        connection:redis,
         removeOnFail: { count: 100 },
         removeOnComplete: { count: 10 },
         concurrency: 5,

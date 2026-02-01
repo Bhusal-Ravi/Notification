@@ -1,12 +1,12 @@
 
 import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
-import { connection } from "../config/redisConnection.js"
+// import { connection } from "../config/redisConnection.js"
 import { bot } from "../services/telegram.js"
 import { exerciseReminders, waterReminders } from "../services/messages.js"
+import { redis } from "../config/redisConnection.js"
 
-
-const telegramQueue = new Queue('telegram', { connection })
+const telegramQueue = new Queue('telegram', { connection:redis })
 const telegramWorker = new Worker(
     'telegram',
     async job => {
@@ -28,7 +28,7 @@ const telegramWorker = new Worker(
         }
     },
     {
-        connection,
+        connection:redis,
         removeOnFail: { count: 100 },
         removeOnComplete: { count: 10 },
         concurrency: 5,
