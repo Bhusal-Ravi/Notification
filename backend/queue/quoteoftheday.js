@@ -3,7 +3,7 @@ import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
 // import { connection } from "../config/redisConnection.js"
 import { bot } from "../services/telegram.js"
-import { exerciseReminders, qotdMessages, waterReminders } from "../services/messages.js"
+import {  qotdMessages } from "../services/messages.js"
 import { connection } from "../config/redisConnection.js"
 import dotenv from 'dotenv'
 dotenv.config()
@@ -19,7 +19,7 @@ const quoteofthedayworker = new Worker(
   month: "long",
   day: "numeric"
 });
-const qotdClosing= qotdMessages[Math.floor(Math.random() * closings.length)]
+const qotdClosing= qotdMessages[Math.floor(Math.random() * qotdMessages.length)]
         const  {fname,lname,userid,telegram_user_id,chat_id,timezone,quotes}= job.data
         const quote= quotes.quote.body
         const author= quotes.quote.author
@@ -38,7 +38,7 @@ ${fname} ${lname},
 ${qotdClosing}
 `;
 
-        bot.sendMessage(t.chat_id,message,{
+        bot.sendMessage(chat_id,message,{
             parse_mode:"Markdown"
         })
         
@@ -58,7 +58,7 @@ ${qotdClosing}
 
 quoteofthedayworker.on('completed',async  job => {
     const client= await pool.connect()
-    const { userid,taskid } = job.data
+    const { userid } = job.data
 
     const lastcheckUpdate=await client.query(`update taskuser
                         set lastcheck=now()
@@ -67,7 +67,7 @@ quoteofthedayworker.on('completed',async  job => {
 
     client.release()
     if(lastcheckUpdate.rowCount>0){
-        console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
+        console.log(`Last check updated for userid:${userid} taskid:6`)
     }
 
     console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
@@ -83,9 +83,10 @@ quoteofthedayworker.on('error', err => {
 
 
 export async function enqueueqotd(){
+    let client= await pool.connect();
     try{
         let quotes=""
-        const client= await pool.connect();
+        
         const qotdUsers= await client.query(` select u.fname,u.lname,u.userid,t.telegram_user_id,t.chat_id,tu.timezone from userinfo u
                                                 join taskuser tu on tu.userid=u.userid
                                                 join telegramusers t on t.userid=u.userid
@@ -117,7 +118,7 @@ export async function enqueueqotd(){
 
 
         for(const user of qotdUsers.rows) {
-            const {fname,lname,userid,telegram_user_id,timezone}=user
+            const {fname,lname,userid,telegram_user_id,timezone,chat_id}=user
             quoteofthedayQueue.add(`qotd job: userid: ${telegram_user_id}`,{
                                                                             fname,
                                                                             lname,
