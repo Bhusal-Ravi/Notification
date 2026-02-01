@@ -12,6 +12,7 @@ import { Queue, Worker } from 'bullmq'
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
+import './queue/quoteoftheday.js'
 import {checkEmail } from  './services/gmail.js'
 
 if (process.env.NODE_ENV !== 'production') {
@@ -50,6 +51,12 @@ export const notificationWorker = new Worker('schedular', async job => {
         if(job.name==='MidNight_Report'){
             console.log(`MidNight_Report Notification Enqueued`)
             await enqueueMindNightReport()
+
+        }
+
+        if(job.name==='Quote_Of_The_Day'){
+            console.log(`Quote_Of_The_Day Notification Enqueued`)
+            await enqueueqotd()
 
         }
     
@@ -104,13 +111,24 @@ await notificationQueue.upsertJobScheduler(
 await notificationQueue.upsertJobScheduler(
     'MidNight_Report',
     {
-        pattern: '* * * * *', // Every hour
+        pattern: '* * * * *', // Every minute
     },
     {
         name: 'MidNight_Report',
         data: { message: 'MidNight Report Enqueing'}
     }
 );
+
+await notificationQueue.upsertJobSchedular (
+     'Quote_Of_The_Day',
+    {
+        pattern: '* * * * *', // Every minute
+    },
+    {
+        name: 'Quote_Of_The_Day',
+        data: { message: 'Quote_Of_The_Day Enqueing'}
+    }
+)
 
 
 app.use('/api',healthcheckRoute)

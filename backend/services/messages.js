@@ -363,3 +363,25 @@ Your last exercise was ${days?(days<=1?`${days} day`:`${days} days`):""} ${hours
 Move now and feel energized 🚀
 Next Reminder at: Tomorrow ${next_notify_time}`
 ];
+
+
+export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
+  "Wishing you a peaceful and productive day 🌿",
+  "May today be kind to you ✨",
+  "Take this thought with you into the day 🌄",
+  "Hope this sets a positive tone for your morning 🌞",
+  "Start gently — the rest will follow 🌱",
+  "One good thought can shape the whole day 🌈",
+  "Breathe in, begin, and move forward 💫",
+  "Let today unfold at its own pace 🍃",
+  "Carry this with you as the day begins 🌤️",
+  "May your day be steady and meaningful 🧭",
+  "A small thought for a big day ahead 🌅",
+  "Wishing you clarity and calm today 🌊",
+  "Let this be a quiet boost to your morning ☕",
+  "Step into the day with intention 🌞",
+  "Hope today brings small wins and good moments ⭐",
+  "Begin the day grounded and open-minded 🌍",
+  "May today feel lighter and brighter 🌼",
+  "Keep this in mind as the day moves on 🚶‍♂️",
+  "Here’s to a thoughtful start to your day 🌄"]
