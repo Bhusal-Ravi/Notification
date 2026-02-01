@@ -12,7 +12,7 @@ import { Queue, Worker } from 'bullmq'
 import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
-import './queue/quoteoftheday.js'
+import { enqueueqotd } from './queue/quoteoftheday.js'
 import {checkEmail } from  './services/gmail.js'
 
 if (process.env.NODE_ENV !== 'production') {
@@ -119,7 +119,7 @@ await notificationQueue.upsertJobScheduler(
     }
 );
 
-await notificationQueue.upsertJobSchedular (
+await notificationQueue.upsertJobScheduler(
      'Quote_Of_The_Day',
     {
         pattern: '* * * * *', // Every minute
