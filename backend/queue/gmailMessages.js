@@ -5,168 +5,26 @@ import { Queue, Worker } from "bullmq"
 
 import { connection } from "../config/redisConnection.js"
 import { resend } from "../services/gmail.js"
+import { Emailhtml } from "../services/messages.js"
 
 
 const gmailQueue= new Queue('gmail',{connection})
 const gmailWorker= new Worker('gmail',async job=>{
     const {waterCount,exerciseCount,studyCount,fname,lname,email,today_date} = job?.data
+    const readableDate = new Date(today_date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC'
+    })
 
-   console.log("Gmail gmail gmail")
+   
    try{
 const mailOptions = {
   from: 'Notification <notification@portlify.me>',
   to: [email],
-  subject: `Daily Activity Report-${today_date}`,
-  html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>Daily Activity Report</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #f3f4f6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    .container {
-      max-width: 620px;
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-    }
-
-    .header {
-      background: linear-gradient(180deg, #ffffff, #f1f3f5);
-      padding: 28px 32px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #111827;
-      letter-spacing: 0.3px;
-    }
-
-    .content {
-      padding: 32px;
-      color: #1f2937;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    .content p {
-      margin: 0 0 16px;
-    }
-
-    .stats {
-      margin: 28px 0;
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 20px;
-      background: #f9fafb;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      margin-bottom: 12px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: #374151;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .footer {
-      background: #f9fafb;
-      padding: 20px 32px;
-      text-align: center;
-      font-size: 12px;
-      color: #6b7280;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .footer strong {
-      color: #111827;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-
-    <div class="header">
-      <h1>Daily Activity Summary</h1>
-    </div>
-
-    <div class="content">
-      <p>Hello <strong>${fname} ${lname}</strong>,</p>
-
-      <p>
-        This is your midnight activity report for
-        <strong>${today_date}</strong>.
-      </p>
-
-      <div class="stats">
-
-        <!-- Water -->
-        <div class="stat-row">
-          <div class="stat-label">Water Intake 💧</div>
-          <div class="stat-value">${waterCount}</div>
-        </div>
-
-        <!-- Exercise -->
-        <div class="stat-row">
-          <div class="stat-label">Exercise Sessions 🏃‍♂️</div>
-          <div class="stat-value">${exerciseCount}</div>
-        </div>
-
-        <!-- Study -->
-        <div class="stat-row">
-          <div class="stat-label">Study Sessions 📘</div>
-          <div class="stat-value">${studyCount}</div>
-        </div>
-
-      </div>
-
-      <p>
-        Consistency matters more than intensity.
-        Keep showing up.
-      </p>
-
-      <p>
-        Regards,<br />
-        <strong>NotificationBot</strong>
-      </p>
-    </div>
-
-    <div class="footer">
-      © ${new Date().getFullYear()} <strong>NotificationBot</strong><br />
-      This is an automated daily report.
-    </div>
-
-  </div>
-</body>
-</html>
-`
-
-
+  subject: `Daily Activity Report - ${readableDate}`,
+  html: Emailhtml({waterCount,exerciseCount,studyCount,fname,lname,readableDate})
 };
 
    const { data, error } = await resend.emails.send(mailOptions)

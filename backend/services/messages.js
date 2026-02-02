@@ -385,3 +385,149 @@ export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
   "May today feel lighter and brighter 🌼",
   "Keep this in mind as the day moves on 🚶‍♂️",
   "Here’s to a thoughtful start to your day 🌄"]
+
+
+  export function Emailhtml({waterCount,exerciseCount,studyCount,fname,lname,readableDate}){
+    return (`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Activity Report</title>
+</head>
+
+<body style="margin:0;padding:20px;background-color:#faf8f5;font-family:Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#faf8f5;">
+  <tr>
+    <td align="center">
+
+      <!-- Wrapper -->
+      <table width="680" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #1a1a1a;">
+
+        <!-- Masthead -->
+        <tr>
+          <td style="background:#1a1a1a;padding:32px 40px;border-bottom:4px solid #ff6b35;">
+            <div style="font-size:40px;font-weight:900;color:#ffffff;">
+              DAILY DISPATCH
+            </div>
+            <div style="font-size:13px;color:#ff6b35;letter-spacing:2px;text-transform:uppercase;margin-top:6px;">
+              ${readableDate}
+            </div>
+          </td>
+        </tr>
+
+        <!-- Greeting -->
+        <tr>
+          <td style="padding:32px 40px;border-bottom:1px solid #e0e0e0;">
+            <p style="margin:0;font-size:16px;line-height:1.6;color:#2a2a2a;">
+              Good evening, <strong>${fname} ${lname}</strong> — your midnight activity report has arrived.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Water Intake -->
+        <tr>
+          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
+            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
+              💧 Water Intake: <strong>${waterCount}</strong>
+            </p>
+            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
+              Total number of water intakes you logged today — glasses, bottles, or cups.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Exercise -->
+        <tr>
+          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
+            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
+              🏃‍♂️ Exercise Sessions: <strong>${exerciseCount}</strong>
+            </p>
+            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
+              Total exercise sessions you completed today — workouts, runs, or any physical activity.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Study -->
+        <tr>
+          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
+            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
+              📘 Study Sessions: <strong>${studyCount}</strong>
+            </p>
+            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
+              Total study sessions you recorded today — reading, practice, or focused learning.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Instructions Section -->
+        <tr>
+          <td style="padding:32px 40px;background:#fffbf5;border-top:2px solid #1a1a1a;border-bottom:2px solid #1a1a1a;">
+            <p style="margin:0 0 12px;font-size:20px;font-weight:700;color:#1a1a1a;text-align:center;">
+              How to Log Your Activities
+            </p>
+            <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#2a2a2a;text-align:center;">
+              Use our Telegram bot to instantly track your daily habits. Just send one of the commands below:
+            </p>
+
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:6px 0;font-size:15px;">
+                  💧 <strong>/input water</strong> — Log water intake
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:6px 0;font-size:15px;">
+                  📘 <strong>/input study</strong> — Log a study session
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:6px 0;font-size:15px;">
+                  🏃‍♂️ <strong>/input exercise</strong> — Log an exercise session
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Quote -->
+        <tr>
+          <td style="padding:32px 40px;background:#1a1a1a;">
+            <p style="margin:0;font-size:16px;line-height:1.6;color:#ffffff;font-style:italic;">
+              “Consistency matters more than intensity. Small daily improvements compound into remarkable results.”
+            </p>
+          </td>
+        </tr>
+
+        <!-- Signature -->
+        <tr>
+          <td style="padding:32px 40px;text-align:center;">
+            <p style="margin:0;font-size:14px;line-height:1.8;color:#4a4a4a;">
+              Best regards,<br>
+              <strong style="color:#1a1a1a;">NotificationBot</strong><br>
+              Your automated accountability partner
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#1a1a1a;padding:24px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#9a9a9a;">
+              © ${new Date().getFullYear()} <strong style="color:#ffffff;">NotificationBot</strong><br>
+              Automated daily report · Delivered at midnight
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
+`)
+  }
