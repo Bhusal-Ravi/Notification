@@ -32,7 +32,7 @@ const message = `
 “${quote}”
 — *${author}*
 
-${tags}
+tags:${tags}
 
 ${fname} ${lname},
 ${qotdClosing}
@@ -91,8 +91,8 @@ export async function enqueueqotd(){
                                                 join taskuser tu on tu.userid=u.userid
                                                 join telegramusers t on t.userid=u.userid
                                                 where tu.taskid=6 and tu.isactive=true
-                                                and (now() at time zone tu.timezone)::time >= '17:12'
-                                                and (now() at time zone tu.timezone)::time < '17:30'
+                                                and (now() at time zone tu.timezone)::time >= '06:00'
+                                                and (now() at time zone tu.timezone)::time < '06:05'
                                                 and  now()-lastcheck>= tu.notify_after  
                                             `)
         if(qotdUsers.rowCount>0){
@@ -139,7 +139,7 @@ export async function enqueueqotd(){
     }catch(error){
         console.log(error)
     }finally{
-        await client.release()
+         client.release()
     }
 }
 

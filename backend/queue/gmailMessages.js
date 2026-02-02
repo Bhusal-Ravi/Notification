@@ -15,7 +15,7 @@ const gmailWorker= new Worker('gmail',async job=>{
 const mailOptions = {
   from: {
     name: "NotificationBot",
-    address: "yourmail@gmail.com"
+    address: "notification11bot@gmail.com"
   },
   to: email,
   subject: `Daily Activity Report-${today_date}`,
