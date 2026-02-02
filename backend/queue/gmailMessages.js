@@ -221,8 +221,8 @@ const mailOptions = {
          try{
             const users= await client.query(`select distinct on (u.userid) u.userid , tu.timezone,(now() at time zone tu.timezone)::date as today_date, u.fname,u.lname,u.email from userinfo u 
                                                 join taskuser tu on tu.userid=u.userid
-                                                where (now() at time zone tu.timezone)::time >= '13:00'
-                                                and   (now() at time zone tu.timezone)::time < '13:30'
+                                                where (now() at time zone tu.timezone)::time >= '13:50'
+                                                and   (now() at time zone tu.timezone)::time < '14:00'
                                                 and   taskid=5
                                                 and (tu.lastcheck at time zone tu.timezone)::date < (now() at time zone tu.timezone)::date`)
                 
