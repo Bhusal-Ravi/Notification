@@ -14,7 +14,7 @@ const gmailWorker= new Worker('gmail',async job=>{
    console.log("Gmail gmail gmail")
    try{
 const mailOptions = {
-  from: 'NotificationBot <notification11bot@gmail.com>',
+  from: 'Acme <onboarding@resend.dev>',
   to: [email],
   subject: `Daily Activity Report-${today_date}`,
   html: `
@@ -170,7 +170,13 @@ const mailOptions = {
 };
 
    const { data, error } = await resend.emails.send(mailOptions)
-   console.log("Email Sent",data);
+   if(error){
+    console.log(error)
+
+   }else {
+    console.log(data)
+   }
+
 
 }catch(error){
   console.log(error)
