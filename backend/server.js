@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dns from 'dns'
 import { connection } from './config/redisConnection.js'
-
+import './services/gmail.js'
 
 import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
@@ -13,14 +13,14 @@ import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMess
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
-import {checkEmail } from  './services/gmail.js'
 
-if (process.env.NODE_ENV !== 'production') {
+
+ 
     dotenv.config()
-}
 
 
-checkEmail()
+
+
 
 const port=3000
 const app= express()

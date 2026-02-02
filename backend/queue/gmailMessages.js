@@ -2,8 +2,9 @@
 import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
 // import { connection } from "../config/redisConnection.js"
-import { transporter } from "../services/gmail.js"
+
 import { connection } from "../config/redisConnection.js"
+import { resend } from "../services/gmail.js"
 
 
 const gmailQueue= new Queue('gmail',{connection})
@@ -13,11 +14,8 @@ const gmailWorker= new Worker('gmail',async job=>{
    console.log("Gmail gmail gmail")
    try{
 const mailOptions = {
-  from: {
-    name: "NotificationBot",
-    address: "notification11bot@gmail.com"
-  },
-  to: email,
+  from: 'NotificationBot <notification11bot@gmail.com>',
+  to: [email],
   subject: `Daily Activity Report-${today_date}`,
   html: `
 <!DOCTYPE html>
@@ -171,7 +169,8 @@ const mailOptions = {
 
 };
 
-    await transporter.sendMail(mailOptions);
+   const { data, error } = await resend.emails.send(mailOptions)
+   console.log("Email Sent",data);
 
 }catch(error){
   console.log(error)
@@ -216,8 +215,8 @@ const mailOptions = {
          try{
             const users= await client.query(`select distinct on (u.userid) u.userid , tu.timezone,(now() at time zone tu.timezone)::date as today_date, u.fname,u.lname,u.email from userinfo u 
                                                 join taskuser tu on tu.userid=u.userid
-                                                where (now() at time zone tu.timezone)::time >= '00:00'
-                                                and   (now() at time zone tu.timezone)::time < '00:05'
+                                                where (now() at time zone tu.timezone)::time >= '13:00'
+                                                and   (now() at time zone tu.timezone)::time < '13:30'
                                                 and   taskid=5
                                                 and (tu.lastcheck at time zone tu.timezone)::date < (now() at time zone tu.timezone)::date`)
                 
