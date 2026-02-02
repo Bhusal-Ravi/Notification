@@ -14,7 +14,7 @@ const gmailWorker= new Worker('gmail',async job=>{
    console.log("Gmail gmail gmail")
    try{
 const mailOptions = {
-  from: 'Acme <onboarding@resend.dev>',
+  from: 'Notification <notification@portlify.me>',
   to: [email],
   subject: `Daily Activity Report-${today_date}`,
   html: `
@@ -187,10 +187,10 @@ const mailOptions = {
         connection,
         removeOnFail: { count: 100 },
         removeOnComplete: { count: 10 },
-        concurrency: 5,
+        concurrency: 2,
         limiter: {
-            max: 10,
-            duration: 1000
+            max: 2,
+            duration: 2000
         }
     })
 
@@ -221,8 +221,8 @@ const mailOptions = {
          try{
             const users= await client.query(`select distinct on (u.userid) u.userid , tu.timezone,(now() at time zone tu.timezone)::date as today_date, u.fname,u.lname,u.email from userinfo u 
                                                 join taskuser tu on tu.userid=u.userid
-                                                where (now() at time zone tu.timezone)::time >= '13:50'
-                                                and   (now() at time zone tu.timezone)::time < '14:00'
+                                                where (now() at time zone tu.timezone)::time >= '00:00'
+                                                and   (now() at time zone tu.timezone)::time < '00:05'
                                                 and   taskid=5
                                                 and (tu.lastcheck at time zone tu.timezone)::date < (now() at time zone tu.timezone)::date`)
                 
