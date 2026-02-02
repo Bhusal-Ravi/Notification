@@ -1,4 +1,5 @@
 
+
 import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
 // import { connection } from "../config/redisConnection.js"
@@ -91,8 +92,8 @@ export async function enqueueqotd(){
                                                 join taskuser tu on tu.userid=u.userid
                                                 join telegramusers t on t.userid=u.userid
                                                 where tu.taskid=6 and tu.isactive=true
-                                                and (now() at time zone tu.timezone)::time >= '17:12'
-                                                and (now() at time zone tu.timezone)::time < '17:30'
+                                                and (now() at time zone tu.timezone)::time >= '06:00'
+                                                and (now() at time zone tu.timezone)::time < '06:30'
                                                 and  now()-lastcheck>= tu.notify_after  
                                             `)
         if(qotdUsers.rowCount>0){
