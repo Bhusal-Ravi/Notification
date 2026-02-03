@@ -6,6 +6,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    allowedHosts: ['fantastic-during-earthquake-extreme.trycloudflare.com'],
+    allowedHosts: [
+      'combined-rubber-glass-natural.trycloudflare.com',
+      'jul-normal-game-unsubscribe.trycloudflare.com',
+    ],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
 })

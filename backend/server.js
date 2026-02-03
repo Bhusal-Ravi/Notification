@@ -25,14 +25,14 @@ import userinfoRoute from './routes/userinfo.js'
 
 const port=3000
 const app= express()
-const allowedOrigins = ['http://localhost:5173']
-app.use(cors({
-    origin: allowedOrigins,
+const corsOptions = {
+    origin: true, // reflect request origin to allow every origin
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 204,
-}));
+};
+app.use(cors(corsOptions));
 dbConnect()
 
 // Setup Queue and Worker
