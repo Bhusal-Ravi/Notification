@@ -140,7 +140,7 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
   const client = await pool.connect();
   try{
-  await client.query('BEGIN')
+    await client.query('BEGIN')
     if(command==='water'){
 
       const telegramRes= await client.query(`Select 1 from telegramusers where telegram_user_id=$1`,[telegramUserId])
@@ -164,7 +164,6 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
         } else if(activate.rowCount===1 ){
          await  bot.sendMessage(chatId,`Successfully activated water notification`)
         }
-        await client.query('COMMIT');
     }
 
     if (command==='exercise'){
@@ -189,7 +188,6 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
         } else if(activate.rowCount===1 ){
          await  bot.sendMessage(chatId,`Successfully activated exercise notification`)
         }
-        await client.query('COMMIT');
     }
 
        if (command==='study'){
@@ -214,15 +212,16 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
         } else if(activate.rowCount===1 ){
          await  bot.sendMessage(chatId,`Successfully activated Study notification`)
         }
-        await client.query('COMMIT');
-        client.release()
     }
+
+    await client.query('COMMIT');
   }
     catch(error){
       await client.query('ROLLBACK');
-      client.release()
       console.log(error)
     await  bot.sendMessage(chatId,'Something went wrong')
+  } finally {
+    client.release()
   }
 
   

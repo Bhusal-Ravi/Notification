@@ -3,11 +3,11 @@ import dotenv from 'dotenv'
 
     dotenv.config()
 
-
-
+const connectionString = process.env.POSTGRES_CONNECTION_STRING
 
 export const pool= new Pool({
-    connectionString:  process.env.POSTGRES_CONNECTION_STRING
+    connectionString,
+    ssl: { rejectUnauthorized: false }
 })
 
 export async function dbConnect(){

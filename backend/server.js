@@ -13,6 +13,7 @@ import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMess
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
+import userinfoRoute from './routes/userinfo.js'
 
 
  
@@ -24,10 +25,13 @@ import { enqueueqotd } from './queue/quoteoftheday.js'
 
 const port=3000
 const app= express()
+const allowedOrigins = ['http://localhost:5173']
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 204,
 }));
 dbConnect()
 
@@ -132,6 +136,7 @@ await notificationQueue.upsertJobScheduler(
 
 
 app.use('/api',healthcheckRoute)
+app.use('/api',userinfoRoute)
 
 
 

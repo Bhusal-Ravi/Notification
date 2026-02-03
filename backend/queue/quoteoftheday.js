@@ -59,19 +59,24 @@ ${qotdClosing}
 
 quoteofthedayworker.on('completed',async  job => {
     const client= await pool.connect()
-    const { userid } = job.data
+    try {
+        const { userid } = job.data
 
-    const lastcheckUpdate=await client.query(`update taskuser
+        const lastcheckUpdate=await client.query(`update taskuser
                         set lastcheck=now()
                         where userid=$1
                         and taskid=$2`,[userid,6])
 
-    client.release()
-    if(lastcheckUpdate.rowCount>0){
-        console.log(`Last check updated for userid:${userid} taskid:6`)
-    }
+        if(lastcheckUpdate.rowCount>0){
+            console.log(`Last check updated for userid:${userid} taskid:6`)
+        }
 
-    console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
+        console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
+    } catch (error) {
+        console.error('Failed to finalize QOTD job', error)
+    } finally {
+        client.release()
+    }
 })
 
 quoteofthedayworker.on('failed', (job, err) => {
@@ -93,7 +98,7 @@ export async function enqueueqotd(){
                                                 join telegramusers t on t.userid=u.userid
                                                 where tu.taskid=6 and tu.isactive=true
                                                 and (now() at time zone tu.timezone)::time >= '06:00'
-                                                and (now() at time zone tu.timezone)::time < '06:05'
+                                                and (now() at time zone tu.timezone)::time < '06:15'
                                                 and  now()-lastcheck>= tu.notify_after  
                                             `)
         if(qotdUsers.rowCount>0){

@@ -41,19 +41,24 @@ const telegramWorker = new Worker(
 
 telegramWorker.on('completed',async  job => {
     const client= await pool.connect()
-    const { userid,taskid } = job.data
+    try {
+        const { userid,taskid } = job.data
 
-    const lastcheckUpdate=await client.query(`update taskuser
+        const lastcheckUpdate=await client.query(`update taskuser
                         set lastcheck=now()
                         where userid=$1
                         and taskid=$2`,[userid,taskid])
 
-    client.release()
-    if(lastcheckUpdate.rowCount>0){
-        console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
-    }
+        if(lastcheckUpdate.rowCount>0){
+            console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
+        }
 
-    console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
+        console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
+    } catch (error) {
+        console.error('Failed to finalize Telegram job', error)
+    } finally {
+        client.release()
+    }
 })
 
 telegramWorker.on('failed', (job, err) => {

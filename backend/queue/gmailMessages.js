@@ -55,12 +55,18 @@ const mailOptions = {
 
    gmailWorker.on('completed',async  job => {
     const client= await pool.connect()
+    try {
         console.log(`Gmail Job Complete: ${job.name} (${job.id})`)
           const {waterCount,userid,exerciseCount,studyCount,fname,lname,email,today_date} = job?.data
           await client.query(`update taskuser 
                               set lastcheck=now()
                               where taskid=5
                               and userid=$1`,[userid])
+    } catch (error) {
+      console.error('Failed to finalize Gmail job', error)
+    } finally {
+      client.release()
+    }
 
     })
     

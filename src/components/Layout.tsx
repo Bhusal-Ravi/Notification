@@ -6,7 +6,7 @@ function Layout() {
   return (
     <div>
       <Navbar />
-      <main className="pt-16">
+      <main className="pt-16 flex justify-center items-center">
         <Outlet />
       </main>
     </div>
