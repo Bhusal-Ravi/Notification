@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: [
-      'combined-rubber-glass-natural.trycloudflare.com',
-      'jul-normal-game-unsubscribe.trycloudflare.com',
+      'cookie-updated-works-alleged.trycloudflare.com',
+      'selections-hitting-gathering-color.trycloudflare.com',
     ],
     proxy: {
       '/api': {

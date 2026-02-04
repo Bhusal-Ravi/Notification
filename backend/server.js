@@ -14,6 +14,7 @@ import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
 import userinfoRoute from './routes/userinfo.js'
+import updateRoute from './routes/update.js'
 
 
  
@@ -137,6 +138,7 @@ await notificationQueue.upsertJobScheduler(
 
 app.use('/api',healthcheckRoute)
 app.use('/api',userinfoRoute)
+app.use('/api',updateRoute)
 
 
 

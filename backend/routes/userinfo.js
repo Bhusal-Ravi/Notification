@@ -31,4 +31,35 @@ router.get('/userinfo/:userid', async (req,res)=>{
     }
 })
 
+
+router.get('/userstreak/:userid', async (req,res)=>{
+    let client
+    try{
+        client = await pool.connect()
+        const {userid}= req.params
+        if(!userid){
+            return res.status(400).json({message:"No userid provided"})
+        }
+        const response= await client.query(`select  t.taskname,count(tl.taskid)::int
+                                            from task t join taskactivity tl 
+                                            on tl.taskid=t.taskid
+                                            where performed_at::date=now()::date
+                                            and tl.userid=$1
+                                            group by t.taskname`,[userid])
+        if(response.rowCount===0){
+          return  res.status(200).json({message:"No user streak today"})
+        }  
+        
+        return res.status(200).json({message:"Todays streak",data:response.rows})
+
+    }catch(error){
+        console.log(error)
+        return res.status(500).json({message:"Internal Servel Error"})
+        
+    }finally {
+        client?.release()
+    }
+})
+
+
 export default router
