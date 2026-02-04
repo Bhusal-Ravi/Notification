@@ -24,3 +24,11 @@ Backend service that schedules personal reminders (water, exercise, study) and s
 - `queue/` BullMQ producers for Telegram and Gmail jobs
 - `routes/` Express route definitions
 - `services/` integrations (Telegram bot, Gmail SMTP, message templates)
+
+## Visual Preview
+
+![Hydration Flow](src/assets/images/water.png)
+
+![Quote of the Day](src/assets/images/qotd.png)
+
+![Midnight Report](src/assets/images/midnightreport.png)
