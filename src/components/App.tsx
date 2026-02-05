@@ -22,11 +22,11 @@ function App() {
   const [userid,setUserId]= useState<string>('f06c9a03-5acd-4c32-a062-128563fc8f71')
   const [userinfo,setUserInfo]=useState<UserInfoRow[]>([])
   const [userStreak,setUserStreak]= useState<UserStreak[]>([])
-  const totalActiveTasks:Number = userinfo.length
-  const uniqueTimezones:Number = new Set(userinfo.map(task => task.timezone)).size
-  const intervalDriven:Number = userinfo.filter(task => task.notify_after && task.notify_after !== '0').length
-  const currentlyWatching:Number= userStreak.length
-  const userActivityCount:Number = userStreak.reduce((acc,curr)=>curr.count && acc + curr.count ,0  )
+  const totalActiveTasks:number = userinfo.length
+  const uniqueTimezones:number = new Set(userinfo.map(task => task.timezone)).size
+  const intervalDriven:number = userinfo.filter(task => task.notify_after && task.notify_after !== '0')?.length
+  const currentlyWatching:number= userStreak?.length ?? 0
+  const userActivityCount:number = userStreak.reduce((acc,curr)=>curr.count ? acc + curr.count : acc ,0  )
 
   async function fetchUserinfo(){
     try{
@@ -42,11 +42,12 @@ function App() {
       })
       const result= await response.json()
       if(!response.ok){
-        throw new Error (result.message)
+        throw new Error (result?.message)
       }
 
-      setUserInfo(result.data)
-      console.log(result.data)
+      const parsedData = Array.isArray(result?.data) ? result.data : []
+      setUserInfo(parsedData)
+      console.log(result?.data)
 
     }catch(error){
       console.log(error)
@@ -70,7 +71,8 @@ function App() {
         throw new Error (result.message)
       }
 
-      setUserStreak(result.data)
+      const parsedData = Array.isArray(result?.data) ? result.data : []
+      setUserStreak(parsedData)
 
       console.log(result.data)
     }catch(error){
@@ -195,7 +197,7 @@ function App() {
           </div>
           {/* problem */}
           <div className='relative z-10 '>
-          <div className='mt-10 grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3'>
+          {userStreak.length>0 ?(<div className='mt-10 grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3'>
             {userStreak && userStreak.map((data)=>(
               <div key={data.taskname} className='bg-black rounded-2xl'>
                 <div className='flex h-full flex-col gap-4 rounded-2xl border-[4px] border-black  bg-[#fff9ef] px-4 py-4 text-left -translate-x-2 -translate-y-2 shadow-[6px_6px_0_#0b0b0d] transition duration-200 hover:-translate-x-3 hover:-translate-y-3 hover:bg-[#ffe6c7]'>
@@ -212,7 +214,12 @@ function App() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>):
+                 <div className='col-span-full border-[4px] mt-5 border-dashed border-black bg-white px-5 py-12 text-center shadow-[8px_8px_0_#0b0b0d]'>
+              <p className='text-sm font-semibold uppercase tracking-[0.3em] text-[#666]'>No Input from the user</p>
+              <p className='mt-2 text-xl font-black text-[#0b0b0d]'>Log in your inputs in the telegram bot to watch it land here</p>
+            </div>
+            }
           </div>
       </section>
 
