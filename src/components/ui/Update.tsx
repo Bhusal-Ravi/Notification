@@ -52,8 +52,12 @@ function Update({userid}:UpdateProps) {
         }
     }
 
+
+
+    
     useEffect(()=>{
         fetchUsertask()
+        
     },[])
 
  function isValidNotifyAfter(value: string) {
@@ -81,7 +85,7 @@ function handleNotifyAfterSubmit(e: React.FormEvent, taskid:number) {
 
 async function updateUserTask({fixed_notify_time,isactive,taskname,timezone,notify_after}){
     try{
-
+        await fetch(``)
     }catch(error){
 
     }
@@ -91,7 +95,7 @@ function handleConfirm(taskid:Number){
  const data=  userTask.filter(item=>item.taskid===taskid)[0]
  let {fixed_notify_time,isactive,taskname,timezone,notify_after}= data
     if(!fixed_notify_time || !isactive || !taskname || !timezone || !notify_after){
-        alert("Fill in all the fields to confirm")
+       return alert("Fill in all the fields to confirm")
     }
 console.log(notify_after)
  if(notify_after.days){
