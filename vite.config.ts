@@ -7,8 +7,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: [
-      'awareness-proposals-hope-win.trycloudflare.com',
-      'out-extends-consultant-march.trycloudflare.com',
+      'syntax-reception-mpg-circle.trycloudflare.com',
+      'believe-diving-parent-perl.trycloudflare.com',
+      'localhost:5173'
     ],
     proxy: {
       '/api': {

@@ -135,7 +135,7 @@ await notificationQueue.upsertJobScheduler(
     }
 )
 
-
+app.use(express.json());
 app.use('/api',healthcheckRoute)
 app.use('/api',userinfoRoute)
 app.use('/api',updateRoute)

@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import { data} from 'react-router-dom'
-import TimezoneSelect, { type ITimezone } from "react-timezone-select"
+import React, { useEffect, useRef, useState } from 'react'
+import TimezoneSelect from "react-timezone-select"
+import { AnimatePresence, motion } from 'framer-motion'
 
 type UserTask={
     taskid:number
@@ -20,6 +20,23 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '
 function Update({userid}:UpdateProps) {
     const [userTask,setUserTask]= useState<UserTask[]>([])
     const [notifyAfter, setNotifyAfter] = useState<{taskid:number; notify_after:string}[]>([])
+    const [notifyAfterValid, setNotifyAfterValid] = useState<Record<number, boolean>>({})
+    const [loadingTasks, setLoadingTasks] = useState<Record<number, boolean>>({})
+  const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
+  const messageIdRef = useRef(0)
+  const timeoutsRef = useRef<number[]>([])
+
+    const requiresNotifyAfterCheck = (task: UserTask) =>
+      task.taskname !== 'Mid Night Report' && task.taskname !== 'Quote of the Day'
+
+    const showStatusCard = (text: string, variant: 'success' | 'error' = 'success') => {
+      const id = messageIdRef.current++
+      setStatusCards(prev => [...prev, { id, text, variant }])
+      const timeoutId = window.setTimeout(() => {
+        setStatusCards(prev => prev.filter(card => card.id !== id))
+      }, 1500)
+      timeoutsRef.current.push(timeoutId)
+    }
 
   
 
@@ -42,6 +59,10 @@ function Update({userid}:UpdateProps) {
 
     setUserTask(result.data)
     setNotifyAfter(result.data.map(item=>({taskid:item.taskid,notify_after:""})))
+    setNotifyAfterValid(result.data.reduce((acc: Record<number, boolean>, task: UserTask)=>{
+      acc[task.taskid] = requiresNotifyAfterCheck(task) ? false : true
+      return acc
+    }, {}))
       
      
       
@@ -56,8 +77,11 @@ function Update({userid}:UpdateProps) {
 
     
     useEffect(()=>{
-        fetchUsertask()
-        
+      fetchUsertask()
+      return () => {
+        timeoutsRef.current.forEach(timeoutId => window.clearTimeout(timeoutId))
+        timeoutsRef.current = []
+      }
     },[])
 
  function isValidNotifyAfter(value: string) {
@@ -71,7 +95,7 @@ function handleNotifyAfterSubmit(e: React.FormEvent, taskid:number) {
     const currentValue = notifyAfter.find(item=>item.taskid===taskid)?.notify_after ?? ''
 
     if (!isValidNotifyAfter(currentValue)) {
-        alert("Invalid format. Use: 1 hour, 15 minute, 1 day")
+        alert("Invalid format.Notify After must be in this format: 1 hour, 15 minute, 1 day")
         return
     }
 
@@ -81,43 +105,108 @@ function handleNotifyAfterSubmit(e: React.FormEvent, taskid:number) {
             :task
         )
     )
+    setNotifyAfterValid(prev => ({...prev, [taskid]: true}))
 }
 
-async function updateUserTask({fixed_notify_time,isactive,taskname,timezone,notify_after}){
+async function updateUserTask({fixed_notify_time,isactive,taskname,timezone,notify_after,taskid}){
     try{
-        await fetch(``)
-    }catch(error){
+      if(!userid) return null
+      console.log(fixed_notify_time,isactive,taskname,timezone,notify_after,taskid)
+        const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+      const response= await fetch(`${base}/api/updateput/${userid}` ,{
+        method:'PUT',
+        headers:{
+          'Content-Type':'application/json'
+          
+        },
+        credentials:"include",
+        body:JSON.stringify({fixed_notify_time,isactive,taskname,timezone,notify_after,taskid})
+      })
 
+      const result= await response.json()
+      console.log(result)
+      if(!response.ok){
+        throw new Error (result.message)
+      }
+
+      return result
+
+      }catch(error){
+        console.log(error)
+        throw error
     }
 }
 
-function handleConfirm(taskid:Number){
- const data=  userTask.filter(item=>item.taskid===taskid)[0]
+async function handleConfirm(taskid:number){
+ const data=  userTask.find(item=>item.taskid===taskid)
+ if(!data) return
+ const requiresCheck = requiresNotifyAfterCheck(data)
+ if(requiresCheck && !notifyAfterValid[taskid]){
+   alert("Click the check button beside Notify After before confirming.")
+   return
+ }
+ if(loadingTasks[taskid]){
+   return
+ }
  let {fixed_notify_time,isactive,taskname,timezone,notify_after}= data
-    if(!fixed_notify_time || !isactive || !taskname || !timezone || !notify_after){
-       return alert("Fill in all the fields to confirm")
-    }
+   if(!fixed_notify_time || !isactive || !taskname || !timezone || !notify_after){
+     return alert("Fill in all the fields to confirm")
+   }
 console.log(notify_after)
  if(notify_after.days){
-    const time=notify_after.days
-    notify_after=`${time} days`
+   const time=notify_after.days
+   notify_after=`${time} days`
  }else if(notify_after.hours){
-    const time=notify_after.hours
-    notify_after=`${time} hours`
+   const time=notify_after.hours
+   notify_after=`${time} hours`
  }else if(notify_after.minutes){
-    const time=notify_after.minutes
-    notify_after=`${time} minutes`
+   const time=notify_after.minutes
+   notify_after=`${time} minutes`
  }
 
-
- updateUserTask({fixed_notify_time,isactive,taskname,timezone,notify_after})
-
+ setLoadingTasks(prev=>({...prev,[taskid]:true}))
+ try{
+   const response = await updateUserTask({fixed_notify_time,isactive,taskname,timezone,notify_after,taskid})
+   const message = typeof response?.message === 'string' && response.message.length > 0
+     ? response.message
+     : 'Successfully updated your task'
+   showStatusCard(message, 'success')
+ }catch(error){
+   const message = error instanceof Error ? error.message : 'Failed to update task'
+   showStatusCard(message, 'error')
+ }finally{
+   setLoadingTasks(prev=>{
+      const next={...prev}
+      delete next[taskid]
+      return next
+   })
+ }
 
 }
 
 
    return (
     <div className="w-full max-w-6xl mx-auto px-4 py-10">
+      <div className="fixed top-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
+        <AnimatePresence>
+          {statusCards.map(card => (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, x: 200 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 200 }}
+              transition={{ type: 'spring', stiffness: 250, damping: 24 }}
+              className={`pointer-events-auto border-[4px] border-black rounded-2xl px-5 py-3 shadow-[10px_10px_0_#0b0b0d] text-sm font-black uppercase tracking-wider ${
+                card.variant === 'success'
+                  ? 'bg-[#c1ff72] text-[#0b0b0d]'
+                  : 'bg-[#ffb5bd] text-[#0b0b0d]'
+              }`}
+            >
+              {card.text}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
       {/* Header */}
       <div className="relative mb-12 overflow-hidden rounded-[32px] border-[4px] border-black bg-[#fefefe] px-6 py-8 shadow-[12px_12px_0_#0b0b0d]">
         <div className="pointer-events-none absolute -top-10 -right-6 h-32 w-32 rotate-[12deg] border-[4px] border-black bg-[#7df9ff] opacity-60" />
@@ -140,7 +229,16 @@ console.log(notify_after)
 
       {/* Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {userTask.map(task => (
+        {userTask.map(task => {
+          const needsCheck = requiresNotifyAfterCheck(task)
+          const isValidated = notifyAfterValid[task.taskid] ?? false
+          const isLoading = Boolean(loadingTasks[task.taskid])
+          const buttonDisabled = isLoading || (needsCheck && !isValidated)
+          const validationTitle = buttonDisabled && needsCheck && !isValidated && !isLoading
+            ? 'Use the check icon to validate Notify After before confirming.'
+            : undefined
+
+          return (
           <div key={task.taskid} className="bg-black rounded-2xl">
             <div className="relative -translate-x-2 -translate-y-2 border-[4px] border-black rounded-2xl bg-white p-5 shadow-[8px_8px_0_#000]">
 
@@ -210,15 +308,19 @@ console.log(notify_after)
                       notifyAfter.find(item => item.taskid === task.taskid)
                         ?.notify_after ?? ''
                     }
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const { value } = e.target
                       setNotifyAfter(prev =>
                         prev.map(item =>
                           item.taskid === task.taskid
-                            ? { ...item, notify_after: e.target.value }
+                            ? { ...item, notify_after: value }
                             : item
                         )
                       )
-                    }
+                      if (requiresNotifyAfterCheck(task)) {
+                        setNotifyAfterValid(prev => ({ ...prev, [task.taskid]: false }))
+                      }
+                    }}
                   />
 
                   {/* Small check button */}
@@ -281,13 +383,46 @@ console.log(notify_after)
               {/* Confirm */}
               <button
                 onClick={() => handleConfirm(task.taskid)}
-                className="mt-6 w-full border-[4px] border-black bg-[#ffff00] px-4 py-3 text-lg font-black uppercase shadow-[6px_6px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1"
+                disabled={buttonDisabled}
+                aria-disabled={buttonDisabled}
+                title={validationTitle}
+                className={`mt-6 w-full border-[4px] border-black px-4 py-3 text-lg font-black uppercase transition-transform ${
+                  buttonDisabled
+                    ? 'bg-[#d4d4d4] cursor-not-allowed opacity-70'
+                    : 'bg-[#ffff00] shadow-[6px_6px_0_#000] hover:-translate-x-1 hover:-translate-y-1'
+                }`}
               >
-                Confirm
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="h-5 w-5 animate-spin text-black"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  'Confirm'
+                )}
               </button>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </div>
   )
