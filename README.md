@@ -16,8 +16,9 @@ Backend service that schedules personal reminders (water, exercise, study) and s
    - `REDIS_HOST`, `REDIS_PORT`
    - `TELEGRAM_TOKEN`
    - `MAIL_USER`, `MAIL_PASS`
-3. Ensure Redis and PostgreSQL are running.
-4. `npm run dev` for auto-reload during development or `npm start` for production mode.
+3. Apply the Better Auth migrations to PostgreSQL (for example: `psql "$POSTGRES_CONNECTION_STRING" -f backend/better-auth_migrations/2026-02-07T15-20-45.441Z.sql`). This creates the `user`, `session`, `account`, and `verification` tables the auth layer needs.
+4. Ensure Redis and PostgreSQL are running.
+5. `npm run dev` for auto-reload during development or `npm start` for production mode.
 
 ## Project Structure
 - `config/` database and Redis connection helpers

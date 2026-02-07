@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, RefreshCcw } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import TimezoneSelect from "react-timezone-select"
 import { AnimatePresence, motion } from 'framer-motion'
@@ -22,6 +22,7 @@ function Update({userid}:UpdateProps) {
     const [notifyAfter, setNotifyAfter] = useState<{taskid:number; notify_after:string}[]>([])
     const [notifyAfterValid, setNotifyAfterValid] = useState<Record<number, boolean>>({})
     const [loadingTasks, setLoadingTasks] = useState<Record<number, boolean>>({})
+  const [refreshingTasks, setRefreshingTasks] = useState(false)
   const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
@@ -41,8 +42,9 @@ function Update({userid}:UpdateProps) {
   
 
     async function fetchUsertask(){
-        try{
-            if(!userid) return
+      if(!userid) return
+      setRefreshingTasks(true)
+      try{
       const base = API_BASE_URL ? `${API_BASE_URL}` : ''
       const response= await fetch(`${base}/api/updateget/${userid}` ,{
         method:'GET',
@@ -70,6 +72,8 @@ function Update({userid}:UpdateProps) {
       console.log(result.data)
         }catch(error){
             console.log(error)
+        }finally{
+          setRefreshingTasks(false)
         }
     }
 
@@ -214,9 +218,46 @@ console.log(notify_after)
 
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]">
-              Control Center
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]">
+                Update Center
+              </p>
+              <div className="relative ml-2 h-10 w-10 group">
+                <button
+                  type="button"
+                  disabled={refreshingTasks}
+                  onClick={fetchUsertask}
+                  className="absolute inset-0 z-10 flex h-full w-full items-center justify-center border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]"
+                >
+                  {refreshingTasks ? (
+                    <svg
+                      className="h-4 w-4 animate-spin text-black"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                  ) : (
+                    <RefreshCcw size={16} />
+                  )}
+                </button>
+                <span className="absolute inset-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3" />
+                <span className="absolute inset-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5" />
+              </div>
+            </div>
             <h1 className="mt-4 text-3xl font-black uppercase leading-tight text-[#0b0b0d] sm:text-[44px]">
               Update Your Notifications
             </h1>

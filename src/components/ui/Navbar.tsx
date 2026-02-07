@@ -1,5 +1,6 @@
 import React from 'react'
 import { GitFork  } from 'lucide-react';
+import Login from '../Login';
 
 function Navbar() {
   return (
@@ -12,6 +13,9 @@ function Navbar() {
                <p className='font-bold text-xl'>N</p>
             </span>
         </button>
+      </div>
+      <div>
+        <Login/>
       </div>
       <div className='ml-auto'>
         <button className='bg-black rounded-md'>

@@ -1,5 +1,8 @@
 import React,{useEffect, useState} from 'react'
 import Update from './ui/Update'
+import { RefreshCcw } from 'lucide-react';
+
+
 
 
 
@@ -22,6 +25,8 @@ function App() {
   const [userid,setUserId]= useState<string>('f06c9a03-5acd-4c32-a062-128563fc8f71')
   const [userinfo,setUserInfo]=useState<UserInfoRow[]>([])
   const [userStreak,setUserStreak]= useState<UserStreak[]>([])
+  const [loadinginfo,setLoadingInfo]= useState<boolean>(false)
+   const [loadingstreak,setLoadingStreak]= useState<boolean>(false)
   const totalActiveTasks:number = userinfo.length
   const uniqueTimezones:number = new Set(userinfo.map(task => task.timezone)).size
   const intervalDriven:number = userinfo.filter(task => task.notify_after && task.notify_after !== '0')?.length
@@ -30,6 +35,7 @@ function App() {
 
   async function fetchUserinfo(){
     try{
+      setLoadingInfo(true)
       if(!userid) return
       const base = API_BASE_URL ? `${API_BASE_URL}` : ''
       const response= await fetch(`${base}/api/userinfo/${userid}` ,{
@@ -51,11 +57,14 @@ function App() {
 
     }catch(error){
       console.log(error)
-    }
+    }finally{
+    setLoadingInfo(false)
+  }
   }
 
   async function fetchUserStreak(){
     try{
+      setLoadingStreak(true)
       if(!userid) return
       const base = API_BASE_URL ? `${API_BASE_URL}` : ''
       const response= await fetch(`${base}/api/userstreak/${userid}` ,{
@@ -77,6 +86,8 @@ function App() {
       console.log(result.data)
     }catch(error){
       console.log(error)
+    }finally{
+      setLoadingStreak(false)
     }
   }
 
@@ -84,6 +95,10 @@ function App() {
     fetchUserinfo()
     fetchUserStreak()
   },[])
+
+  useEffect(()=>{
+
+  },[userinfo])
 
   return (
     <div className='min-h-screen w-full flex flex-col items-center px-4 py-8 sm:px-8 lg:px-0'>
@@ -93,9 +108,43 @@ function App() {
 
         <div className='relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
           <div>
+            <div className='flex   items-center'>
             <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
               Subscriptions Live
             </p>
+           <div className='relative ml-[25px] w-10 h-10 px-4 py-1 group'>
+              <button disabled={loadinginfo} onClick={fetchUserinfo} className=' flex items-center group-hover:bg-[#08a036] justify-center absolute inset-0 z-10 h-full w-full group cursor-pointer shadow-[6px_6px_0_#0b0b0d] bg-[#2FFF2F]  justify-center'>
+                  {loadinginfo ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg
+                          className="h-5 w-5 animate-spin text-black"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
+                        </svg>
+                      
+                      </span>):<RefreshCcw />
+    }
+              </button>
+           <span className='absolute inset-0 z-9 translate-all duration-200 bg-[#7DF9FF] h-full w-full group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
+           <span className='absolute inset-0 z-9 bg-[#FF9F66] translate-all duration-200 h-full w-full group-hover:translate-x-5 group-hover:translate-y-5'></span>
+           </div>
+
+            </div>
             <h1 className='mt-4 text-3xl font-black uppercase leading-tight text-[#0b0b0d] sm:text-[44px]'>Notification Subscription Hub</h1>
             <p className='mt-3 max-w-lg text-base font-medium text-[#333]'>Dashboard to view your active notification subscriptions.</p>
           </div>
@@ -167,8 +216,48 @@ function App() {
         <div className='pointer-events-none z-0   border-5 opacity-70 border-[#272928] -top-20 -right-20 sm:-top-10 sm:-right-15 transition-all bg-[#ff9f66] rounded-full h-48 w-48 rotate-45 absolute'></div>
          <div className='pointer-events-none z-0  border-5 opacity-70 border-[#272928] -bottom-10 -left-20 sm:-bottom-10 sm:-right-15 bg-[#2fff2f] rounded-full h-48 w-48 rotate-45 absolute'></div>
           <div className='  flex flex-col sm:flex-row sm:justify-between items-center relative'>
-            <div className=''>
-            <h2 className='text-3xl sm:text-[44px] leading-tight font-black uppercase text-left text-[#0b0b0d]'>Your Daily Streak</h2>
+            <div className='w-full'>
+              <div className='flex flex-wrap items-center gap-3'>
+                <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
+                  Daily Streak Monitor
+                </p>
+                <div className='relative h-10 w-10 group'>
+                  <button
+                    type='button'
+                    disabled={loadingstreak}
+                    onClick={fetchUserStreak}
+                    className='absolute inset-0 z-10 flex h-full w-full items-center justify-center border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]'
+                  >
+                    {loadingstreak ? (
+                      <svg
+                        className='h-4 w-4 animate-spin text-black'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        xmlns='http://www.w3.org/2000/svg'
+                      >
+                        <circle
+                          className='opacity-25'
+                          cx='12'
+                          cy='12'
+                          r='10'
+                          stroke='currentColor'
+                          strokeWidth='4'
+                        />
+                        <path
+                          className='opacity-75'
+                          fill='currentColor'
+                          d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                        />
+                      </svg>
+                    ) : (
+                      <RefreshCcw size={16} />
+                    )}
+                  </button>
+                  <span className='absolute inset-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
+                  <span className='absolute inset-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
+                </div>
+              </div>
+            <h2 className='mt-4 text-3xl sm:text-[44px] leading-tight font-black uppercase text-left text-[#0b0b0d]'>Your Daily Streak</h2>
             <p className='mt-1 mb-5 text-left  text-base font-medium text-[#133c1b]'>These are the inputs from your side</p>
           </div>
           <div className='grid grid-cols-1 w-full sm:w-auto sm:grid-cols-2  gap-3'>

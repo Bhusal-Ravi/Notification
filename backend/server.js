@@ -15,6 +15,8 @@ import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
 import userinfoRoute from './routes/userinfo.js'
 import updateRoute from './routes/update.js'
+import { toNodeHandler } from "better-auth/node";
+import { auth } from './utils/auth.js'
 
 
  
@@ -34,6 +36,8 @@ const corsOptions = {
     optionsSuccessStatus: 204,
 };
 app.use(cors(corsOptions));
+
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 dbConnect()
 
 // Setup Queue and Worker
@@ -134,6 +138,8 @@ await notificationQueue.upsertJobScheduler(
         data: { message: 'Quote_Of_The_Day Enqueing'}
     }
 )
+
+
 
 app.use(express.json());
 app.use('/api',healthcheckRoute)

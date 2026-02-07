@@ -5,16 +5,22 @@ import './components/index.css'
 import App from './components/App.tsx'
 import Home from './components/Home.tsx'
 import Layout from './components/Layout.tsx'
+import Login from './components/Login.tsx';
+import Welcome from './components/Welcome.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
     children: [
-      { index: true, element: <App /> },
-      { path: 'home', element: <Home /> },
+      { index: true, element: <Home /> },
+      { path: 'main', element: <App /> },
     ],
   },
+  {
+    path:'/welcome',
+    element:<Welcome/>
+  }
 ])
 
 createRoot(document.getElementById('root')!).render(
