@@ -1,6 +1,6 @@
 # Notification Service
 
-Backend service that schedules personal reminders (water, exercise, study) and sends midnight summary emails. It combines BullMQ queues, Redis, Telegram bots, Gmail SMTP, and PostgreSQL so users stay informed across channels.
+Backend service that schedules personal reminders (water, exercise, study) and sends midnight summary emails. It combines BullMQ queues, Redis, Telegram bots, Gmail SMTP, and PostgreSQL so users stay informed across channel.
 
 ## Features
 - Express API with health/test routes and centralized env/bootstrap logic
