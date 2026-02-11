@@ -13,9 +13,9 @@ function Login() {
    try{ 
     await authClient.signIn.social({
       provider:'google',
-      callbackURL:'/main',
+      callbackURL:'http://localhost:5173/main',
       
-      newUserCallbackURL:'/welcome',
+      newUserCallbackURL:'http://localhost:5173/welcome',
        disableRedirect: false,
     })
     }catch(error){

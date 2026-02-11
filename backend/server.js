@@ -15,6 +15,7 @@ import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
 import userinfoRoute from './routes/userinfo.js'
 import updateRoute from './routes/update.js'
+import checkuserexistRoute from './routes/checkuserexist.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 
@@ -38,6 +39,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.use(express.json());
 dbConnect()
 
 // Setup Queue and Worker
@@ -141,10 +143,11 @@ await notificationQueue.upsertJobScheduler(
 
 
 
-app.use(express.json());
+
 app.use('/api',healthcheckRoute)
 app.use('/api',userinfoRoute)
 app.use('/api',updateRoute)
+app.use('/api',checkuserexistRoute)
 
 
 
