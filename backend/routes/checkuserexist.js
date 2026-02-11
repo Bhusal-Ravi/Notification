@@ -13,13 +13,13 @@ router.post('/userexist',async(req,res)=>{
         client= await pool.connect()
         const user= await client.query(`select * from userinfo where email=$1`,[email])
         if(user.rowCount===0){
-           return res.status(404).json({message:'User not found'})
+           return res.status(200).json({message:'User not found',status:'fail'})
         }
 
-      return  res.status(200).json({message:"User exists",data:user.rows[0]})
+      return  res.status(200).json({message:"User exists",data:user.rows[0],status:'pass'})
 
     }catch(error){
-        return res.status(500).json({message:'Internal Server Error'})
+        return res.status(500).json({message:'Internal Server Error',stats:"fail"})
     }finally{
         client?.release()
     }

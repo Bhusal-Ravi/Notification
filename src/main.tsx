@@ -7,6 +7,7 @@ import Home from './components/Home.tsx'
 import Layout from './components/Layout.tsx'
 import Login from './components/Login.tsx';
 import Welcome from './components/Welcome.tsx';
+import AnimateUser from './components/AnimateUser.tsx';
 
 const router = createBrowserRouter([
   {
@@ -14,7 +15,8 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'main', element: <Welcome><App /></Welcome> },
+      { path: 'main', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
+      { path: 'welcome', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
     ],
   },
   // {
