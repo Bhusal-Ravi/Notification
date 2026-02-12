@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     allowedHosts: [
-      'syntax-reception-mpg-circle.trycloudflare.com',
-      'believe-diving-parent-perl.trycloudflare.com',
+      'arg-forward-mpg-princess.trycloudflare.com',
+      'racks-james-headlines-bridges.trycloudflare.com',
       'localhost:5173'
     ],
     proxy: {

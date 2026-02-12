@@ -1,6 +1,8 @@
 import React,{useEffect, useState} from 'react'
 import Update from './ui/Update'
+import TelegramStatus from './ui/TelegramStatus'
 import { RefreshCcw } from 'lucide-react';
+import { authClient } from '../../lib/auth-client';
 
 
 
@@ -22,7 +24,8 @@ type UserStreak={
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 function App() {
-  const [userid,setUserId]= useState<string>('f06c9a03-5acd-4c32-a062-128563fc8f71')
+  const { data: session, isPending } = authClient.useSession()
+  const [userid,setUserId]= useState<string>('')
   const [userinfo,setUserInfo]=useState<UserInfoRow[]>([])
   const [userStreak,setUserStreak]= useState<UserStreak[]>([])
   const [loadinginfo,setLoadingInfo]= useState<boolean>(false)
@@ -32,6 +35,30 @@ function App() {
   const intervalDriven:number = userinfo.filter(task => task.notify_after && task.notify_after !== '0')?.length
   const currentlyWatching:number= userStreak?.length ?? 0
   const userActivityCount:number = userStreak.reduce((acc,curr)=>curr.count ? acc + curr.count : acc ,0  )
+
+  async function fetchUser(email: string) {
+    try {
+      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+      const response = await fetch(`${base}/api/userexist`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const result = await response.json()
+      if (response.ok && result.status === 'pass' && result.data?.userid) {
+        setUserId(result.data.userid)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (!isPending && session?.user?.email) {
+      fetchUser(session.user.email)
+    }
+  }, [session, isPending])
 
   async function fetchUserinfo(){
     try{
@@ -92,16 +119,17 @@ function App() {
   }
 
   useEffect(()=>{
-    fetchUserinfo()
-    fetchUserStreak()
-  },[])
-
-  useEffect(()=>{
-
-  },[userinfo])
+    if(userid){
+      fetchUserinfo()
+      fetchUserStreak()
+    }
+  },[userid])
 
   return (
     <div className='min-h-screen w-full flex flex-col items-center px-4 py-8 sm:px-8 lg:px-0'>
+      <section className='w-full max-w-6xl mb-8'>
+        <TelegramStatus email={session?.user?.email} />
+      </section>
       <section className='w-full max-w-6xl relative border-[4px] border-black rounded-[32px] bg-[#fefefe] px-6 py-10 sm:px-10 shadow-[12px_12px_0_#0b0b0d] overflow-hidden'>
         <div className='pointer-events-none absolute -top-16 -right-10 h-48 w-48 rotate-[12deg] border-[4px] border-black bg-[#7df9ff] opacity-50'></div>
         <div className='pointer-events-none absolute -bottom-12 -left-6 h-40 w-40 rotate-6 border-[4px] border-black bg-[#ffff00] opacity-60'></div>

@@ -3,6 +3,8 @@ import { authClient } from '../../lib/auth-client'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+
 type Message={
   status:string
   message:string
@@ -23,6 +25,7 @@ function Welcome({children}) {
   const [data,setData]= useState<Data>()
   const [message,setMessage]= useState<Message>()
   const [canmove,setCanMove]= useState(false)
+  const [imgError, setImgError] = useState(false)
   const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
@@ -47,7 +50,8 @@ function Welcome({children}) {
         return
       }
       setLoading(true)
-      const response= await fetch(`http://localhost:3000/api/setuserinfo`,{
+      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+      const response= await fetch(`${base}/api/setuserinfo`,{
           method:'PUT',
           headers:{
             'Content-Type':'application/json'
@@ -74,7 +78,8 @@ function Welcome({children}) {
    async function getUserStatus(email:string){
       try{
         setLoading(true)
-        const response= await fetch('http://localhost:3000/api/userexist',{
+        const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+        const response= await fetch(`${base}/api/userexist`,{
           method:'POST',
           credentials:'include',
           headers:{
@@ -130,7 +135,8 @@ function Welcome({children}) {
    }
 
   return (
-    <div className='mt-10 flex flex-col justify-center items-center max-w-5xl'>
+    <div className='min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-0'>
+      {/* Status toast cards */}
       <div className="fixed top-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
         <AnimatePresence>
           {statusCards.map(card => (
@@ -151,30 +157,89 @@ function Welcome({children}) {
           ))}
         </AnimatePresence>
       </div>
-      <div className='flex justify-center items-center flex-col'>
-        <h1 className='text-2xl'>You have logged in as</h1>
-        <div className='flex justify-center items-center mt-2'>
-          {session?.user.image&& (<p className='bg-black h-15 w-15 rounded-full group mr-5'><img className='rounded-full border-[4px] group-hover:translate-x-0 group-hover:translate-y-0 transfom-all duration-200 block -translate-x-[3px] -translate-y-[3px]' src={`${session?.user.image}`}/></p>)}
-          <p className='text-xl'>{session?.user.email}</p>
-        </div>
-        </div>
 
-        <form className='flex flex-col'>
-          <p>Before we continue, Lets us know what do you want to be called</p>
-          <p>Note: Every notification will use this name</p>
-          <div className='flex flex-col justify-center items-center'>
-          <label>First Name</label>
-          <input type='text' value={fname}  onChange={(e)=>setFname(e.target.value)} />
-          </div>
-          <div className='flex flex-col justify-center items-center'>
-          <label>Last Name</label>
-          <input type='text' value={lname} onChange={(e)=>setLname(e.target.value)} />
-          </div>
-          <button disabled={loading} type='button' onClick={handleUserSet}>Confirm</button>
+      <section className='w-full max-w-xl relative border-[4px] border-black rounded-[32px] bg-[#fefefe] px-8 py-10 shadow-[12px_12px_0_#0b0b0d] overflow-hidden'>
+        {/* Decorative shapes */}
+        <div className='pointer-events-none absolute -top-16 -right-10 h-48 w-48 rotate-[12deg] border-[4px] border-black bg-[#7df9ff] opacity-50'></div>
+        <div className='pointer-events-none absolute -bottom-12 -left-6 h-40 w-40 rotate-6 border-[4px] border-black bg-[#ffff00] opacity-60'></div>
 
-        </form>
-      
-      
+        <div className='relative flex flex-col items-center gap-6'>
+          {/* User avatar + email */}
+          <div className='flex flex-col items-center gap-3'>
+            <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
+              Welcome
+            </p>
+            <h1 className='mt-2 text-3xl font-black uppercase leading-tight text-[#0b0b0d] text-center'>You have logged in as</h1>
+
+            <div className='flex items-center gap-4 mt-2'>
+              {session?.user.image && !imgError ? (
+                <div className='bg-black h-14 w-14 rounded-full group flex-shrink-0'>
+                  <img
+                    className='rounded-full border-[4px] border-black h-14 w-14 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-200 block -translate-x-[3px] -translate-y-[3px]'
+                    src={`${session?.user.image}`}
+                    onError={() => setImgError(true)}
+                  />
+                </div>
+              ) : (
+                <div className='bg-black h-14 w-14 rounded-full flex items-center justify-center flex-shrink-0 border-[4px] border-black'>
+                  <span className='text-white text-xl font-black'>{session?.user?.name?.charAt(0)?.toUpperCase() || session?.user?.email?.charAt(0)?.toUpperCase()}</span>
+                </div>
+              )}
+              <p className='text-lg font-semibold text-[#333] break-all'>{session?.user.email}</p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className='w-full border-t-[3px] border-dashed border-black pt-6'>
+            <p className='text-base font-bold text-[#0b0b0d]'>Before we continue, let us know what you want to be called</p>
+            <p className='mt-1 text-sm font-medium text-[#555]'>Note: Every notification will use this name</p>
+
+            <div className='mt-6 flex flex-col gap-4'>
+              <div className='flex flex-col gap-1'>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>First Name</label>
+                <input
+                  type='text'
+                  value={fname}
+                  onChange={(e) => setFname(e.target.value)}
+                  className='border-[3px] border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] focus:bg-[#fffbe6] transition-all'
+                  placeholder='John'
+                />
+              </div>
+              <div className='flex flex-col gap-1'>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Last Name</label>
+                <input
+                  type='text'
+                  value={lname}
+                  onChange={(e) => setLname(e.target.value)}
+                  className='border-[3px] border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] focus:bg-[#fffbe6] transition-all'
+                  placeholder='Doe'
+                />
+              </div>
+            </div>
+
+            <div className='mt-6 flex justify-center'>
+              <div className='bg-black rounded-md'>
+                <button
+                  disabled={loading}
+                  type='button'
+                  onClick={handleUserSet}
+                  className='bg-[#c1ff72] block px-8 py-3 -translate-x-1 -translate-y-1 border-black border-[3px] rounded-md text-sm font-black uppercase tracking-[0.2em] hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  {loading ? (
+                    <span className='flex items-center gap-2'>
+                      <svg className='h-4 w-4 animate-spin' viewBox='0 0 24 24' fill='none'>
+                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z' />
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
