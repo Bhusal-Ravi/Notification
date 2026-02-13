@@ -8,6 +8,7 @@ import Layout from './components/Layout.tsx'
 import Login from './components/Login.tsx';
 import Welcome from './components/Welcome.tsx';
 import AnimateUser from './components/AnimateUser.tsx';
+import CustomNotification from './components/CustomNotification.tsx';
 
 const router = createBrowserRouter([
   {
@@ -19,10 +20,10 @@ const router = createBrowserRouter([
       { path: 'welcome', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
     ],
   },
-  // {
-  //   path:'/welcome',
-  //   element:<Welcome/>
-  // }
+  {
+    path:'/customnotification',
+    element:<CustomNotification/>
+  }
 ])
 
 createRoot(document.getElementById('root')!).render(

@@ -73,6 +73,13 @@ function Navbar() {
             </span>
         </button>
       </div>
+      <div className='ml-auto flex flex-row justify-center items-center'>
+       <button className='bg-black rounded-md mr-2'>
+            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
+    active:translate-x-0 active:translate-y-0 transition-all'>
+               <div className='flex flex-row justify-center items-center'><GitFork strokeWidth={1.5}/> <p className='font-semibold'>Fork</p></div> 
+            </span>
+        </button>
       { !session ?   (
     <Login/>
   )
@@ -107,13 +114,8 @@ function Navbar() {
       )}
     </div>)
 }
-      <div className='ml-auto'>
-        <button className='bg-black rounded-md'>
-            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
-    active:translate-x-0 active:translate-y-0 transition-all'>
-               <div className='flex flex-row justify-center items-center'><GitFork strokeWidth={1.5}/> <p className='font-semibold'>Fork</p></div> 
-            </span>
-        </button>
+      
+       
       </div>
       </div>
     </nav>

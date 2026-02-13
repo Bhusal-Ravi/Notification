@@ -270,7 +270,7 @@ console.log(notify_after)
 
       {/* Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {userTask.map(task => {
+        {userTask?.map(task => {
           const needsCheck = requiresNotifyAfterCheck(task)
           const isValidated = notifyAfterValid[task.taskid] ?? false
           const isLoading = Boolean(loadingTasks[task.taskid])
