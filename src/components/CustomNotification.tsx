@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react'
 
 type first ={
+    title:string
     interval:string,
 }
 
 type second={
+    title:string
     fixed_notify_time:string
 }
 
 type third= {
+    title:string
     fixed_notify_time:string
     fixed_notify_date:string
 }
@@ -17,7 +20,7 @@ function CustomNotification() {
     const [check,setCheck] = useState('first')
     const [firstData,setFirstData]= useState<first>()
     const [secondData,setSecondData]= useState<second>()
-    const [thirdData,setThirdData]= useState<third>({fixed_notify_time:'',fixed_notify_date:''})
+    const [thirdData,setThirdData]= useState<third>({title:'',fixed_notify_time:'',fixed_notify_date:''})
     const [intervalError,setIntervalError]= useState<string>()
 
 
@@ -53,6 +56,13 @@ function CustomNotification() {
 
         function handleFirst(value:string){
 
+             if(!firstData?.title?.length){
+               setIntervalError('Enter a title before confirming')
+               return setTimeout(()=>{
+                    setIntervalError('')
+               },3000)
+             }
+
              let status=/^\d+\s+(minute|hour|day)s?$/.test(value.trim())
              let time = value[0]
              
@@ -70,6 +80,12 @@ function CustomNotification() {
         }
 
         function handleSecond(){
+           if(!secondData?.title?.length){
+                setIntervalError('Enter a title before confirming')
+                return setTimeout(()=>{
+                    setIntervalError('')
+                },3000)
+           }
            if(!secondData?.fixed_notify_time.length){
                 setIntervalError('Enter  Time before confirming')
                 return setTimeout(()=>{
@@ -81,6 +97,12 @@ function CustomNotification() {
         }
 
         function handleThird(){
+            if(!thirdData.title.length){
+                setIntervalError('Enter a title before confirming')
+                return setTimeout(()=>{
+                    setIntervalError('')
+                },3000)
+            }
             if(!thirdData.fixed_notify_date.length || !thirdData.fixed_notify_time.length){
                 
                  setIntervalError('Enter Both Date and Time before confirming')
@@ -132,10 +154,17 @@ function CustomNotification() {
               <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
                 <h2 className='font-bold text-xl mb-1'>Frequently Repeating Notifications</h2>
                 <p className='text-sm mb-4 text-gray-600'>Enter an interval like "1 hour", "15 minutes", or "2 days"</p>
+                <div className='flex flex-col gap-3'>
+                  <input
+                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#ffff00]'
+                    onChange={(e)=>setFirstData((prev)=>({...prev, title:e.target.value, interval: prev?.interval ?? ''}))}
+                    type='text'
+                    placeholder='Notification title'
+                  />
                 <div className='flex flex-col sm:flex-row gap-3'>
                   <input
                     className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#ffff00]'
-                    onChange={(e)=>setFirstData({interval:e.target.value})}
+                    onChange={(e)=>setFirstData((prev)=>({...prev, interval:e.target.value, title: prev?.title ?? ''}))}
                     type='text'
                     placeholder='e.g. 1 hour'
                   />
@@ -145,16 +174,24 @@ function CustomNotification() {
                     </span>
                   </button>
                 </div>
+                </div>
                 <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
               </div>
             ) : check==='second' ? (
               <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
                 <h2 className='font-bold text-xl mb-1'>Daily Repeating Notifications</h2>
                 <p className='text-sm mb-4 text-gray-600'>Pick a time — you'll be notified every day at this time</p>
+                <div className='flex flex-col gap-3'>
+                  <input
+                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#4ecdc4]'
+                    onChange={(e)=>setSecondData((prev)=>({...prev, title:e.target.value, fixed_notify_time: prev?.fixed_notify_time ?? ''}))}
+                    type='text'
+                    placeholder='Notification title'
+                  />
                 <div className='flex flex-col sm:flex-row gap-3'>
                   <input
                     className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#4ecdc4]'
-                    onChange={(e)=>setSecondData({fixed_notify_time:e.target.value})}
+                    onChange={(e)=>setSecondData((prev)=>({...prev, fixed_notify_time:e.target.value, title: prev?.title ?? ''}))}
                     type='time'
                   />
                   <button onClick={handleSecond} className='bg-black rounded-md'>
@@ -163,12 +200,20 @@ function CustomNotification() {
                     </span>
                   </button>
                 </div>
+                </div>
                 <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
               </div>
             ) : (
               <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
                 <h2 className='font-bold text-xl mb-1'>One-Time Notification</h2>
                 <p className='text-sm mb-4 text-gray-600'>Pick a date and time — you'll be notified exactly once</p>
+                <div className='flex flex-col gap-3'>
+                  <input
+                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#a78bfa]'
+                    onChange={(e)=>setThirdData((prev)=>({...prev, title:e.target.value}))}
+                    type='text'
+                    placeholder='Notification title'
+                  />
                 <div className='flex flex-col sm:flex-row gap-3'>
                   <input
                     className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#a78bfa]'
@@ -186,6 +231,7 @@ function CustomNotification() {
                       Confirm
                     </span>
                   </button>
+                </div>
                 </div>
                 <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
               </div>
