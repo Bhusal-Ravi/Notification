@@ -1,0 +1,76 @@
+import express from 'express'
+import {pool} from '../config/dbConnection.js'
+
+const router= express.Router();
+
+
+router.put('/customnotification', async(req,res)=>{
+    let client
+    let notify_after
+    let fixed_notify_time
+    let fixed_notify_date
+    let online='06:00'
+    let offline= '22:00'
+    try{
+        console.log(req.body)
+        const  {email,type,title,timezone}=req.body
+        if(!email || !type || !title || !timezone){
+          return  res.status(400).json({message:"All the fields not provided"})
+        }
+
+        client= await pool.connect()
+       await  client.query('BEGIN')
+        if(type==='first'){
+           
+            notify_after= req.body.notify_after
+            const userresponse= await client.query(`select userid from userinfo where email=$1`,[email])
+            if(userresponse.rowCount===0){
+                await client.query('ABORT') 
+                return res.status(400).json({message:"Provided Email is Invalid"})
+            }
+            const userid= userresponse.rows[0].userid
+            const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type)
+                                                values($1,$2,$3)
+                                                returning taskid
+                                                `,[title,'custom',type])
+
+            if(taskresponse.rowCount===0){
+                await client.query('ABORT') 
+                return res.status(400).json({message:"Failed to update the notification"})
+            }
+            const taskid= taskresponse.rows[0].taskid
+
+            const taskuserresponse= await client.query(`insert into taskuser (userid,taskid,isactive,lastcheck,last_user_activity,timezone,notify_after,online,offline)
+                                                        values(
+                                                        $1,
+                                                        $2,
+                                                        $3,
+                                                        now(),
+                                                        now(),
+                                                        $4,
+                                                        $5,
+                                                        $6,
+                                                        $7
+                                                        )`,[userid,taskid,true,timezone,notify_after,online,offline])
+        
+                   
+        if(taskuserresponse.rowCount===0){
+                await client.query('ABORT') 
+                return res.status(400).json({message:"Failed to update the notification"})
+            }                                
+               await client.query('COMMIT')                                      }
+            return res.status(200).json({message:"Successfully added you notification"})                                   
+                                                   
+    }catch(error){
+         await client.query('ROLLBACK') 
+          console.log("Error:", error.message)
+          console.log(error)
+          return res.status(500).json({message:"Server error", error: error.message})
+         
+        
+    }finally{
+        client.release()
+    }
+})
+
+export default router

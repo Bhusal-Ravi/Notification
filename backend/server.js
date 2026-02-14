@@ -18,6 +18,7 @@ import updateRoute from './routes/update.js'
 import checkuserexistRoute from './routes/checkuserexist.js'
 import setuserinfoRoute from './routes/setuserinfo.js'
 import telegramstatusRoute from './routes/telegramstatuscheck.js'
+import customnotificationRoute from './routes/customnotification.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 
@@ -152,7 +153,7 @@ app.use('/api',updateRoute)
 app.use('/api',checkuserexistRoute)
 app.use('/api',setuserinfoRoute)
 app.use('/api',telegramstatusRoute)
-
+app.use('/api',customnotificationRoute)
 
 
 app.listen(port, async(req,res)=>{
