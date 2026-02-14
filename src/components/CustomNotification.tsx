@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import TimezoneSelect from "react-timezone-select"
 import { authClient } from '../../lib/auth-client'
 import { AnimatePresence, motion } from 'framer-motion'
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 type first ={
     title:string
@@ -22,7 +24,12 @@ type third= {
     timezone:string
 }
 
-function CustomNotification() {
+type CustomNotificationProps = {
+  setCustomNotification: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+
+function CustomNotification({setCustomNotification}: CustomNotificationProps) {
     const { data: session, isPending } = authClient.useSession()
     const email= session?.user?.email
     const [check,setCheck] = useState('first')
@@ -30,6 +37,7 @@ function CustomNotification() {
     const [secondData,setSecondData]= useState<second>({title:'', fixed_notify_time:'', timezone:''})
     const [thirdData,setThirdData]= useState<third>({title:'',fixed_notify_time:'',fixed_notify_date:'',timezone:''})
     const [intervalError,setIntervalError]= useState<string>()
+    const [loading, setLoading] = useState<boolean>(false)
     const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
     const messageIdRef = useRef(0)
     const timeoutsRef = useRef<number[]>([])
@@ -52,6 +60,7 @@ function CustomNotification() {
         }
 
         async function saveNotification(type:string){
+            setLoading(true)
             try{
                 let payload
                 if(type==='first'){
@@ -62,7 +71,8 @@ function CustomNotification() {
                     payload= {fixed_notify_time:thirdData.fixed_notify_time,title:thirdData?.title,fixed_notify_date:thirdData.fixed_notify_date, timezone: thirdData.timezone,email:email,type:type}
                 }
 
-                const response = await fetch('http://localhost:3000/api/customnotification',{
+                const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+                const response = await fetch(`${base}/api/customnotification`,{
                   method:'PUT',
                   credentials:"include",
                   headers:{
@@ -94,6 +104,8 @@ function CustomNotification() {
             }catch(error){
                 const message = error instanceof Error ? error.message : 'Failed to create notification'
                 showStatusCard(message, 'error')
+            }finally{
+                setLoading(false)
             }
         }
 
@@ -185,9 +197,15 @@ function CustomNotification() {
         }
 
   return (
-    <div className='flex flex-col justify-center items-center w-full max-w-4xl mx-auto px-6 py-10'>
+    <div className='relative bg-black/50  z-20 flex flex-col justify-center items-center w-full max-w-4xl mx-auto px-6 py-10'>
         {/* Status Cards */}
-        <div className="fixed top-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
+        <button 
+          className='absolute cursor-pointer top-2 right-5 border-[3px] border-black bg-[#ffb5bd] px-4 py-2 text-sm font-bold uppercase tracking-wider shadow-[4px_4px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1' 
+          onClick={()=>setCustomNotification(prev=>!prev)}
+        >
+          Cancel
+        </button>
+        <div className="fixed top-6  right-6 z-50 flex flex-col gap-4 pointer-events-none">
             <AnimatePresence>
                 {statusCards.map(card => (
                     <motion.div
@@ -275,9 +293,37 @@ function CustomNotification() {
                     type='text'
                     placeholder='e.g. 1 hour'
                   />
-                  <button onClick={()=>handleFirst(firstData?.interval??"")} className='bg-black rounded-md'>
-                    <span className='bg-[#ffff00] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-                      Confirm
+                  <button onClick={()=>handleFirst(firstData?.interval??"")} disabled={loading} className='bg-black rounded-md'>
+                    <span className={`bg-[#ffff00] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold transition-all ${
+                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
+                    }`}>
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="h-5 w-5 animate-spin text-black"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Confirm'
+                      )}
                     </span>
                   </button>
                 </div>
@@ -315,9 +361,37 @@ function CustomNotification() {
                     onChange={(e)=>setSecondData((prev)=>({...prev, fixed_notify_time:e.target.value}))}
                     type='time'
                   />
-                  <button onClick={handleSecond} className='bg-black rounded-md'>
-                    <span className='bg-[#4ecdc4] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-                      Confirm
+                  <button onClick={handleSecond} disabled={loading} className='bg-black rounded-md'>
+                    <span className={`bg-[#4ecdc4] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold transition-all ${
+                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
+                    }`}>
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="h-5 w-5 animate-spin text-black"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Confirm'
+                      )}
                     </span>
                   </button>
                 </div>
@@ -361,9 +435,37 @@ function CustomNotification() {
                     min={new Date().toISOString().split("T")[0]}
                     type='date'
                   />
-                  <button onClick={handleThird} className='bg-black rounded-md'>
-                    <span className='bg-[#a78bfa] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold text-white hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-                      Confirm
+                  <button onClick={handleThird} disabled={loading} className='bg-black rounded-md'>
+                    <span className={`bg-[#a78bfa] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold text-white transition-all ${
+                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
+                    }`}>
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="h-5 w-5 animate-spin text-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Confirm'
+                      )}
                     </span>
                   </button>
                 </div>

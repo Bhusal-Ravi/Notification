@@ -1,7 +1,7 @@
-import React from 'react'
+
 import {authClient} from '../../lib/auth-client'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+
 
 
 
@@ -25,16 +25,9 @@ function Login() {
     }
   }
 
-   const { data: session, isPending } = authClient.useSession()
+   const { data: session,  } = authClient.useSession()
 
-   async function getUser(){
-    try{
-      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response= await fetch(`${base}/api/userexist`)
-    }catch(error){
-
-    }
-   }
+   
 
   if(!session) return (
     <button onClick={LoginUser} className='bg-black rounded-md'>

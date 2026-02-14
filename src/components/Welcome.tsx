@@ -1,35 +1,36 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { authClient } from '../../lib/auth-client'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 
+import type { ReactNode } from 'react';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
-type Message={
-  status:string
-  message:string
-}
-type Data= {
-  userid:string
-  createdat:string,
-  fname:string,
-  lname:string,
-  email:string
 
+// type Data= {
+//   userid:string
+//   createdat:string,
+//   fname:string,
+//   lname:string,
+//   email:string
+
+// }
+
+type Props={
+  children: ReactNode;
 }
 
-function Welcome({children}) {
+function Welcome({children}:Props) {
   const [fname,setFname]= useState('')
   const [lname,setLname]= useState('')
   const [loading,setLoading]= useState(false)
-  const [data,setData]= useState<Data>()
-  const [message,setMessage]= useState<Message>()
+  
+  
   const [canmove,setCanMove]= useState(false)
   const [imgError, setImgError] = useState(false)
   const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
-  const navigate = useNavigate()
+ 
 
 
    const { data: session, isPending } = authClient.useSession()
@@ -94,7 +95,7 @@ function Welcome({children}) {
          return  showStatusCard('Failed to check users info','error')
         }
 
-        setData(result.data)
+      
         if(result.status==='pass'){
           setCanMove(true)
         }

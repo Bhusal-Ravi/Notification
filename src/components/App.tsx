@@ -1,4 +1,4 @@
-import React,{useEffect, useState} from 'react'
+import {useEffect, useState} from 'react'
 import Update from './ui/Update'
 import TelegramStatus from './ui/TelegramStatus'
 import { RefreshCcw } from 'lucide-react';

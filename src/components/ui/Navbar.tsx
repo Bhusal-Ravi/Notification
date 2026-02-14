@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import { GitFork  } from 'lucide-react';
 import Login from '../Login';
 import { authClient } from '../../../lib/auth-client';
@@ -21,7 +21,7 @@ function Navbar() {
      const [data,setData]= useState<Data>()
      const [showLogout, setShowLogout] = useState(false)
      const [imgError, setImgError] = useState(false)
-    const { data: session, isPending } = authClient.useSession()
+    const { data: session } = authClient.useSession()
     const navigate = useNavigate()
 
    

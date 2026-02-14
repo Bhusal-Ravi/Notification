@@ -1,8 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react'
+import  { useEffect, useState } from 'react'
+import type { ReactNode } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { authClient } from '../../lib/auth-client';
 
-function AnimateUser({children}) {
+type Props = {
+  children: ReactNode;
+};
+
+
+function AnimateUser({children}:Props) {
     const [canmove,setCanMove]= useState(false)
     const [imgError, setImgError] = useState(false)
      const { data: session, isPending } = authClient.useSession()
