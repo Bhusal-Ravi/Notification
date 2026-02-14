@@ -30,7 +30,7 @@ type CustomNotificationProps = {
 
 
 function CustomNotification({setCustomNotification}: CustomNotificationProps) {
-    const { data: session, isPending } = authClient.useSession()
+    const { data: session } = authClient.useSession()
     const email= session?.user?.email
     const [check,setCheck] = useState('first')
     const [firstData,setFirstData]= useState<first>({title:'', interval:'', timezone:''})
