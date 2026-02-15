@@ -32,6 +32,7 @@ import { auth } from './utils/auth.js'
 
 const port=3000
 const app= express()
+app.set("trust proxy", 1);
 const corsOptions = {
     origin: true, // reflect request origin to allow every origin
     credentials: true,
@@ -42,7 +43,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.all('/api/auth/{*any}', toNodeHandler(auth));
-app.set("trust proxy", 1);
+
 app.use(express.json());
 dbConnect()
 
