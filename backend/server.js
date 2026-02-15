@@ -42,6 +42,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.set("trust proxy", 1);
 app.use(express.json());
 dbConnect()
 

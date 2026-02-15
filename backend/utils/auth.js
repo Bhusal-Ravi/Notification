@@ -6,6 +6,11 @@ import dotenv from 'dotenv'
 const connectionString = process.env.POSTGRES_CONNECTION_STRING
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
+    cookies:{
+      secure:true,
+      sameSite:'lax'
+    },
+    
   database: new Pool({
      connectionString,
     ssl: { rejectUnauthorized: false }
