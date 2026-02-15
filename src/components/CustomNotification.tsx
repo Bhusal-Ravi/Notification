@@ -200,7 +200,7 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
     <div className='relative bg-black/50  z-20 flex flex-col justify-center items-center w-full max-w-4xl mx-auto px-6 py-10'>
         {/* Status Cards */}
         <button 
-          className='absolute cursor-pointer top-2 right-5 border-[3px] border-black bg-[#ffb5bd] px-4 py-2 text-sm font-bold uppercase tracking-wider shadow-[4px_4px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1' 
+          className='absolute cursor-pointer top-0 right-5 border-[3px] border-black bg-[#ffb5bd] px-2 py-1 text-sm font-bold uppercase tracking-wider shadow-[4px_4px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1' 
           onClick={()=>setCustomNotification(prev=>!prev)}
         >
           Cancel
