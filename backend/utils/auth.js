@@ -8,7 +8,7 @@ export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     cookies:{
       secure:true,
-      sameSite:'lax'
+      sameSite:'none'
     },
     
   database: new Pool({
