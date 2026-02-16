@@ -6,8 +6,8 @@ import {authClient} from '../../lib/auth-client'
 
 
 
-
-
+const auth_callbackurl = (import.meta.env.VITE_CALLBACK_URL ?? '').replace(/\/+$/, '')
+const auth_newUserCallbackURL = (import.meta.env.VITE_NEW_USER_CALLBACK_URL ?? '').replace(/\/+$/, '')
 function Login() {
 
   async function LoginUser(){
@@ -15,9 +15,9 @@ function Login() {
    try{ 
     await authClient.signIn.social({
       provider:'google',
-      callbackURL:'http://localhost:5173/main',
+      callbackURL:auth_callbackurl,
       
-      newUserCallbackURL:'http://localhost:5173/welcome',
+      newUserCallbackURL:auth_newUserCallbackURL,
        disableRedirect: false,
     })
     }catch(error){

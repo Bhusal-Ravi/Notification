@@ -12,6 +12,7 @@ export const auth = betterAuth({
       sameSite: "none",
       secure: true,
     },
+   
   },
     
   database: new Pool({
