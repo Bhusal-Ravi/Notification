@@ -1,6 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import dns from 'dns'
+import https from 'https'
+import fs from 'fs'
+import path from 'path'
 import { connection } from './config/redisConnection.js'
 import './services/gmail.js'
 
@@ -21,14 +24,11 @@ import telegramstatusRoute from './routes/telegramstatuscheck.js'
 import customnotificationRoute from './routes/customnotification.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
+import { fileURLToPath } from 'url'
 
-
- 
     dotenv.config()
 
-
-
-
+const serverState= process.env.DEVELOPEMENT
 
 const port=3000
 const app= express()
@@ -46,6 +46,8 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 app.use(express.json());
 dbConnect()
+
+
 
 // Setup Queue and Worker
 export const notificationQueue = new Queue('schedular', { connection });
@@ -157,7 +159,20 @@ app.use('/api',setuserinfoRoute)
 app.use('/api',telegramstatusRoute)
 app.use('/api',customnotificationRoute)
 
+const currentDir= path.dirname(fileURLToPath(import.meta.url))
 
-app.listen(port, async(req,res)=>{
-    console.log(`Server started on PORT: ${port}`)
+const sslServer= https.createServer({
+    key:fs.readFileSync(path.join(currentDir,'cert','key.pem')),
+    cert:fs.readFileSync(path.join(currentDir,'cert','cert.pem'))
+},app)
+
+if(serverState==='local' ){
+    sslServer.listen(port,async (req,res)=>{
+        console.log(`Server started on PORT using ssl certificate HTTPS: ${port}`)
+    })
+}else {
+    app.listen(port, async(req,res)=>{
+    console.log(`Server started on PORT http: ${port}`)
 })
+}
+
