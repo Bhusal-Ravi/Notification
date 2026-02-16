@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'main', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
+      { path: 'main', element:<AnimateUser><App /></AnimateUser> },
       { path: 'welcome', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
     ],
   },
