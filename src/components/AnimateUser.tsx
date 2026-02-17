@@ -26,7 +26,7 @@ function AnimateUser({children}:Props) {
      return (
     <div className=' flex flex-col min-h-screen justify-center items-center'>
         <DotLottieReact
-      src='public\animations\Hello.lottie'
+      src='animations/Hello.lottie'
       loop={false}
       autoplay
     />

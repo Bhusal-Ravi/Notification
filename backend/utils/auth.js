@@ -14,6 +14,7 @@ export const auth = betterAuth({
     },
    
   },
+  experimental: { joins: true },
     
   database: new Pool({
      connectionString,
@@ -28,7 +29,7 @@ export const auth = betterAuth({
   trustedOrigins:[
      "https://notification-production-01a0.up.railway.app",
     "https://notification-beige-two.vercel.app",
-     "http://localhost:5173",
-    "http://localhost:3000",
+     "https://localhost:5173",
+    "https://localhost:3000",
   ]
 });

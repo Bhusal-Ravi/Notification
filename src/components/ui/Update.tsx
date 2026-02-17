@@ -31,7 +31,6 @@ const COMMON_INTERVALS = [
   { label: '6 hours', value: '6 hours' },
   { label: '12 hours', value: '12 hours' },
   { label: '1 day', value: '1 day' },
-  { label: 'Custom', value: 'custom' },
 ]
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
@@ -54,6 +53,8 @@ function Update({userid}:UpdateProps) {
     const [refreshingTasks, setRefreshingTasks] = useState(false)
     const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
     const [customNotificationset,setCustomNotification]= useState(false)
+  const [touchedFields, setTouchedFields] = useState<Record<number, { notifyAfter?: boolean; fixedTime?: boolean; timezone?: boolean }>>({})
+  const [submitAttempts, setSubmitAttempts] = useState<Record<number, boolean>>({})
     const messageIdRef = useRef(0)
     const timeoutsRef = useRef<number[]>([])
 
@@ -90,10 +91,12 @@ function Update({userid}:UpdateProps) {
 
         const formStates: Record<number, TaskFormState> = {}
         result.data.forEach((task: UserTask) => {
+          const hasNotifyAfter = Boolean(task.notify_after?.trim())
+
           formStates[task.taskid] = {
             ...task,
             notifyAfterValue: task.notify_after,
-            notifyAfterValidation: requiresNotifyAfter(task)
+            notifyAfterValidation: requiresNotifyAfter(task) && hasNotifyAfter
               ? validateNotifyAfter(task.notify_after)
               : { isValid: true }
           }
@@ -102,7 +105,7 @@ function Update({userid}:UpdateProps) {
         console.log(result.data)
       }catch(error){
         console.log(error)
-        showStatusCard('Failed to load tasks', 'error')
+        showStatusCard('Failed to load tasks error')
       }finally{
         setRefreshingTasks(false)
       }
@@ -137,7 +140,15 @@ function Update({userid}:UpdateProps) {
       }))
     }
 
+    const markTouched = (taskid: number, field: 'notifyAfter' | 'fixedTime' | 'timezone') => {
+      setTouchedFields(prev => ({
+        ...prev,
+        [taskid]: { ...prev[taskid], [field]: true }
+      }))
+    }
+
     const updateNotifyAfter = (taskid: number, value: string) => {
+      markTouched(taskid, 'notifyAfter')
       const validation = value === 'custom' 
         ? { isValid: false, error: 'Enter custom format' }
         : validateNotifyAfter(value)
@@ -153,6 +164,7 @@ function Update({userid}:UpdateProps) {
     }
 
     const handleCustomNotifyAfter = (taskid: number, value: string) => {
+      markTouched(taskid, 'notifyAfter')
       const validation = validateNotifyAfter(value)
       setTaskForms(prev => ({
         ...prev,
@@ -203,6 +215,8 @@ function Update({userid}:UpdateProps) {
     async function handleConfirm(taskid: number){
       const task = taskForms[taskid]
       if(!task) return
+
+      setSubmitAttempts(prev => ({ ...prev, [taskid]: true }))
 
       // Validate all required fields
       const errors: string[] = []
@@ -361,6 +375,11 @@ function Update({userid}:UpdateProps) {
           const needsNotifyAfter = requiresNotifyAfter(task)
           const isValidated = task.notifyAfterValidation.isValid
           const isLoading = Boolean(loadingTasks[task.taskid])
+          const touched = touchedFields[task.taskid] || {}
+          const hasSubmitAttempt = Boolean(submitAttempts[task.taskid])
+          const showNotifyValidation = needsNotifyAfter && (touched.notifyAfter || hasSubmitAttempt)
+          const showFixedTimeError = !task.fixed_notify_time && (touched.fixedTime || hasSubmitAttempt)
+          const showTimezoneError = !task.timezone && (touched.timezone || hasSubmitAttempt)
           const hasErrors = (!task.fixed_notify_time || !task.timezone) || (needsNotifyAfter && !isValidated)
           const buttonDisabled = isLoading || hasErrors
 
@@ -439,7 +458,7 @@ function Update({userid}:UpdateProps) {
                       )}
 
                       {/* Validation Status */}
-                      {needsNotifyAfter && (
+                      {showNotifyValidation && (
                         <div className={`flex items-start gap-2 text-xs font-semibold px-2 py-1 rounded ${
                           task.notifyAfterValidation.isValid
                             ? 'text-[#0b7236] bg-[#d0f4d7]'
@@ -472,7 +491,7 @@ function Update({userid}:UpdateProps) {
                         : 'bg-white'}`}
                     onChange={(e) => updateTaskField(task.taskid, 'fixed_notify_time', e.target.value)}
                   />
-                  {!task.fixed_notify_time && (
+                  {showFixedTimeError && (
                     <p className="text-xs text-[#7d0b0b] mt-1 flex items-center gap-1">
                       <AlertCircle size={12} /> Required
                     </p>
@@ -487,10 +506,13 @@ function Update({userid}:UpdateProps) {
                   <div className="border-[3px] border-black bg-white shadow-[4px_4px_0_#000]">
                     <TimezoneSelect
                       value={task.timezone}
-                      onChange={(e) => updateTaskField(task.taskid, 'timezone', e.value)}
+                      onChange={(e) => {
+                        markTouched(task.taskid, 'timezone')
+                        updateTaskField(task.taskid, 'timezone', e.value)
+                      }}
                     />
                   </div>
-                  {!task.timezone && (
+                  {showTimezoneError && (
                     <p className="text-xs text-[#7d0b0b] mt-1 flex items-center gap-1">
                       <AlertCircle size={12} /> Required
                     </p>

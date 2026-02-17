@@ -16,6 +16,11 @@ router.post('/userexist',async(req,res)=>{
            return res.status(200).json({message:'User not found',status:'fail'})
         }
 
+        if(!user.rows[0].fname && !user.rows[0].lname){
+            console.log("fname:",fname)
+            return res.status(200).json({message:'Details Missing ',status:'fail'})
+        }
+
       return  res.status(200).json({message:"User exists",data:user.rows[0],status:'pass'})
 
     }catch(error){

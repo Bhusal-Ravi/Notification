@@ -88,6 +88,8 @@ export async function enqueueWaterMessage(){
 										 where tu.isactive=$1 and tt.taskid=$2
                                          and now()- tu.last_user_activity>= tu.notify_after
                                          and now()-lastcheck>= tu.notify_after
+                                         and ( now() at time zone 'Asia/Kathmandu')::time >= tu.online
+                                         and ( now() at time zone 'Asia/Kathmandu')::time <= tu.offline
                                          `,[true,1])
 
                 
