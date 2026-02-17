@@ -25,6 +25,7 @@ import customnotificationRoute from './routes/customnotification.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 import { fileURLToPath } from 'url'
+import { limiter } from './middleware/express_rate_limit.js'
 
 dotenv.config()
 const requiredEnvVars=[

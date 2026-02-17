@@ -1,9 +1,10 @@
 import express from 'express'
 import {pool} from '../config/dbConnection.js'
+import { limiter } from '../middleware/express_rate_limit.js';
 
 const router= express.Router();
 
-router.post('/userexist',async(req,res)=>{
+router.post('/userexist',limiter,async(req,res)=>{
       let client
     try{
         const {email}=req.body

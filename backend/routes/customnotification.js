@@ -1,10 +1,11 @@
 import express from 'express'
 import {pool} from '../config/dbConnection.js'
+import { limiter } from '../middleware/express_rate_limit.js';
 
 const router= express.Router();
 
 
-router.put('/customnotification', async(req,res)=>{
+router.put('/customnotification',limiter, async(req,res)=>{
     let client
     let notify_after
     let fixed_notify_time
