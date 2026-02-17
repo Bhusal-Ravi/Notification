@@ -105,7 +105,7 @@ function Update({userid}:UpdateProps) {
         console.log(result.data)
       }catch(error){
         console.log(error)
-        showStatusCard(error.message)
+        showStatusCard('Failed to load tasks error')
       }finally{
         setRefreshingTasks(false)
       }
