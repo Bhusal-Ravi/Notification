@@ -26,7 +26,36 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 import { fileURLToPath } from 'url'
 
-    dotenv.config()
+dotenv.config()
+const requiredEnvVars=[
+'POSTGRES_CONNECTION_STRING',
+"POSTGRES_HOST",
+"REDIS_USERNAME",
+"REDIS_PASSWORD",
+"REDIS_HOST",
+'REDIS_PORT',
+'TELEGRAM_TOKEN',
+'MAIL_USER',
+'MAIL_PASS',
+'API_KEY_QUOTES',
+'RESEND_API_KEY',
+'BETTER_AUTH_SECRET',
+'GOOGLE_CLIENT_ID',
+'GOOGLE_CLIENT_SECRET',
+'BETTER_AUTH_URL',
+'BETTER_AUTH_SECRET',
+'DEVELOPEMENT',
+]
+
+requiredEnvVars.forEach(env => {
+  if (!process.env[env]) {
+    console.error(`❌ Missing environment variable: ${env}`);
+    process.exit(1);
+  }
+});
+console.log('✅ All environment variables loaded');
+
+
 
 const serverState= process.env.DEVELOPEMENT
 
