@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { authClient } from "../../lib/auth-client"
-import { motion } from "framer-motion";
+
 import LoadingScreen from "./ui/Loading";
 
 interface SessionVerifyProps {

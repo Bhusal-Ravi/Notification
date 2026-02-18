@@ -1,17 +1,17 @@
 import { ExternalLink } from "lucide-react"
-import { useState } from "react"
+// import { useState } from "react"
 
 
 function Telegramverify() {
-    const [loading,setLoading]= useState(false)
+    // const [loading,setLoading]= useState(false)
 
-    async function getToken (){
-        try{
+    // async function getToken (){
+    //     try{
 
-        }catch(error){
-            console.log(error)
-        }
-    }
+    //     }catch(error){
+    //         console.log(error)
+    //     }
+    // }
 
 
 
@@ -39,7 +39,7 @@ function Telegramverify() {
 
                     <div>
                         <p>Generate a unique token</p>
-                        {loading && <p>Generating you token..please wait</p>}
+                        {/* {loading && <p>Generating you token..please wait</p>} */}
                         <button onClick={handleTokenGenerate}  className="border-1">Generate</button>
                     </div>
 
