@@ -1,9 +1,10 @@
 import express from 'express'
 import { pool } from '../config/dbConnection.js'
+import { authenticateSession } from '../middleware/session_authenticate.js'
 
 const router = express.Router()
 
-router.post('/telegramstatus', async (req, res) => {
+router.post('/telegramstatus',authenticateSession, async (req, res) => {
     let client
     try {
         const { email } = req.body

@@ -2,11 +2,12 @@ import express from 'express'
 import {pool} from '../config/dbConnection.js'
 import { taskuserseed } from '../scripts/taskuserSeed.js';
 import { limiter } from '../middleware/express_rate_limit.js';
+import { authenticateSession } from '../middleware/session_authenticate.js';
 
 const router= express.Router();
 
 
-router.put('/setuserinfo',limiter,async(req,res)=>{
+router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
     let client
     try{
         client= await pool.connect()

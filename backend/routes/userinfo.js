@@ -1,9 +1,10 @@
 import express from 'express'
 import {pool} from '../config/dbConnection.js'
+import { authenticateSession } from '../middleware/session_authenticate.js';
 
 const router= express.Router();
 
-router.get('/userinfo/:userid', async (req,res)=>{
+router.get('/userinfo/:userid',authenticateSession, async (req,res)=>{
     let client
     try{
         client = await pool.connect()
@@ -32,7 +33,7 @@ router.get('/userinfo/:userid', async (req,res)=>{
 })
 
 
-router.get('/userstreak/:userid', async (req,res)=>{
+router.get('/userstreak/:userid',authenticateSession, async (req,res)=>{
     let client
     try{
         client = await pool.connect()

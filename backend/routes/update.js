@@ -1,10 +1,11 @@
 import express from 'express'
 import {pool} from '../config/dbConnection.js'
 import { limiter } from '../middleware/express_rate_limit.js';
+import { authenticateSession } from '../middleware/session_authenticate.js';
 
 const router= express.Router();
 
-router.get('/updateget/:userid', async (req,res)=>{
+router.get('/updateget/:userid', authenticateSession,async (req,res)=>{
     let client
     try{
         client = await pool.connect()
@@ -33,7 +34,7 @@ router.get('/updateget/:userid', async (req,res)=>{
 
 
 
-router.put('/updateput/:userid',limiter, async (req,res)=>{
+router.put('/updateput/:userid',authenticateSession,limiter, async (req,res)=>{
     let client
     try{
         client = await pool.connect()

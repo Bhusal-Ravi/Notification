@@ -1,10 +1,11 @@
 import express from 'express'
 import {pool} from '../config/dbConnection.js'
 import { limiter } from '../middleware/express_rate_limit.js';
+import { authenticateSession } from '../middleware/session_authenticate.js';
 
 const router= express.Router();
 
-router.post('/userexist',limiter,async(req,res)=>{
+router.post('/userexist',authenticateSession,limiter,async(req,res)=>{
       let client
     try{
         const {email}=req.body
