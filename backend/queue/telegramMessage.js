@@ -10,6 +10,9 @@ const telegramQueue = new Queue('telegram', { connection })
 const telegramWorker = new Worker(
     'telegram',
     async job => {
+        try{
+
+       
         const { chat_id, fname, lname, taskname,days,hours, minutes,present_time,next_notify_time } = job.data
 
         if (taskname === 'Drink Water') {
@@ -25,6 +28,10 @@ const telegramWorker = new Worker(
             await bot.sendMessage(
                 chat_id,message
             )
+        }
+         }catch(error){
+            console.log(error) 
+            throw  error
         }
     },
     {

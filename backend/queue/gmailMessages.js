@@ -29,6 +29,7 @@ const mailOptions = {
 
    const { data, error } = await resend.emails.send(mailOptions)
    if(error){
+    
     console.log(error)
 
    }else {
@@ -38,6 +39,7 @@ const mailOptions = {
 
 }catch(error){
   console.log(error)
+  throw error
 }
 
     

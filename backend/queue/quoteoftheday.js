@@ -14,6 +14,9 @@ const quoteofthedayQueue = new Queue('qotd', { connection })
 const quoteofthedayworker = new Worker(
     'qotd',
     async job => {
+        try{
+
+       
     const today = new Date().toLocaleDateString("en-US", {
   weekday: "long",
   year: "numeric",
@@ -42,6 +45,10 @@ ${qotdClosing}
         bot.sendMessage(chat_id,message,{
             parse_mode:"Markdown"
         })
+         }catch(error){
+            console.log(error)
+            throw error
+         }
         
     },
     {

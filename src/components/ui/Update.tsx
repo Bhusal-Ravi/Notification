@@ -284,6 +284,7 @@ function Update({userid}:UpdateProps) {
       )}
       <div className="fixed top-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
         <AnimatePresence>
+
           {statusCards.map(card => (
             <motion.div
               key={card.id}
