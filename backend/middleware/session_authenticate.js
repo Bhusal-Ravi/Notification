@@ -12,7 +12,9 @@ import { auth } from "../utils/auth.js";
               return  res.status(401).json({message:"Not Authorized to perform the action"})
             }
            
-            return next()
+            req.session= session;
+
+             next()
         }catch(error){
             return res.status(401).json({message:"Could not verify the session"})
         }

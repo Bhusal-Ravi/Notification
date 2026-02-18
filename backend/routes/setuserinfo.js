@@ -13,18 +13,19 @@ router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
         client= await pool.connect()
         await client.query('BEGIN')
       const {email,fname,lname}= req.body
+      const session= req.session
       if(!email || !fname || !lname){
         await client.query('ABORT')
         return res.status(400).json({message:"Required fields not provided"})
       }  
 
 
-      const setnewuser= await client.query(`insert into userinfo(fname,lname,email)
-                                            values($1,$2,$3)
+      const setnewuser= await client.query(`insert into userinfo(userid,fname,lname,email)
+                                            values($1,$2,$3,$4)
                                             on conflict (email) 
                                             do update 
                                             set fname=$1,lname=$2,email=$3
-                                            returning userid`,[fname,lname,email]);
+                                            returning userid`,[session.user.id,fname,lname,email]);
 
 
         if(setnewuser.rowCount===0){

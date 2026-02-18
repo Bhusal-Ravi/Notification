@@ -28,6 +28,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '
 
 function App() {
   const { data: session, isPending } = authClient.useSession()
+  
   const [userid,setUserId]= useState<string>('')
   const [userinfo,setUserInfo]=useState<UserInfoRow[]>([])
   const [userStreak,setUserStreak]= useState<UserStreak[]>([])
@@ -59,6 +60,7 @@ function App() {
 
   useEffect(() => {
     if (!isPending && session?.user?.email) {
+      console.log(session)
       fetchUser(session.user.email)
     }
   }, [session, isPending])
