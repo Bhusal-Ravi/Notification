@@ -1,29 +1,17 @@
-import  { useEffect, useState } from 'react'
-import type { ReactNode } from 'react';
+import  {  useState } from 'react'
+
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { authClient } from '../../lib/auth-client';
 
-type Props = {
-  children: ReactNode;
-};
 
 
-function AnimateUser({children}:Props) {
-    const [canmove,setCanMove]= useState(false)
+function AnimateUser() {
+   
     const [imgError, setImgError] = useState(false)
-     const { data: session, isPending } = authClient.useSession()
-      useEffect(()=>{
-    setTimeout(()=>{
-    setCanMove(true)
-      },4000)
-   },[canmove])
-   if(isPending){
-    return <div className='mt-10 flex justify-center items-center'>Loading session...</div>
-   }
-   if(canmove) return children
-  
-
-     return (
+     const { data: session } = authClient.useSession()
+      
+   
+   return (
     <div className=' flex flex-col min-h-screen justify-center items-center'>
         <DotLottieReact
       src='animations/Hello.lottie'

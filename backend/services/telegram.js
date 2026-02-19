@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api'
 import dotenv from 'dotenv'
 import { pool } from '../config/dbConnection.js'
+import crypto from 'crypto'
 
 
   dotenv.config()
@@ -74,6 +75,76 @@ Type any command to get started. ✅
 `;
 
   await bot.sendMessage(chatId, helpMessage);
+})
+
+
+bot.onText(/\/link\s+(.+)/,async(msg,match)=>{
+      const chatId = msg.chat.id;
+  const telegramUserId = msg.from.id;
+  const trailingstring=match[1].trim().toLowerCase().split(/\s+/)
+  const otp = trailingstring[0]
+  const email= trailingstring[1]
+
+  if(!otp.length || !email.length){
+   return  bot.sendMessage(chatId,"Invalid OTP text format. Try again with a valid otp")
+  }
+  const otphash= crypto.createHash('sha256')
+                        .update(otp)
+                        .digest('hex')
+  
+  const client= await pool.connect()
+  
+  try{
+    await client.query('BEGIN')
+
+     const tokenuser= await client.query(`select tokenhash,userid
+                                        from telegramotp 
+                                        where expiresat>=now()
+                                        and used=false
+                                        and tokenhash=$1
+                                        and email=$2`,[otphash,email])    
+  
+  if(tokenuser.rowCount===0){
+    await client.query('ABORT')
+    return bot.sendMessage(chatId,"This otp is either expired or already used or invalid")
+  }
+  
+  const {tokenhash,userid}=tokenuser?.rows[0]
+  console.log(tokenhash,userid)
+  if(!tokenhash || !userid){
+     await client.query('ABORT')
+    return bot.sendMessage(chatId,"Failed to register your otp")
+  }
+
+  const telegramregister= await client.query(`insert into telegramusers (telegram_user_id,chat_id,userid)
+                                              values
+                                              ($1,$2,$3)`,[telegramUserId,chatId,userid])
+
+    
+    
+    if(telegramregister.rowCount===0){
+      await client.query('ROLLBACK')
+      return bot.sendMessage(chatId,`Failed to verify your telegramId`)
+    }
+
+    await client.query('COMMIT')
+
+  return bot.sendMessage(chatId, `Your telegram account is successfully linked with
+Email: ${email}
+Welcome to the Notification Team `)
+
+  }catch(error){
+    console.log(error)
+    if(error.code==='23505'){
+      return bot.sendMessage(chatId,`Your telegramId is already linked with our system. In order to change the link please visit our website`)
+    }
+    bot.sendMessage(chatId,'Could not perform this action right now')
+  }finally{
+    if(client){
+      client.release()
+    }
+  }
+  
 })
 
 
@@ -226,6 +297,10 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
   
 });
+
+
+
+
 
 
 bot.onText(/\/input\s+(.+)/, async  (msg,match) => {

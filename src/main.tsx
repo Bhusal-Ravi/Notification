@@ -22,18 +22,15 @@ const router = createBrowserRouter([
     errorElement:<ErrorFallback/>,
     children: [
       { index: true, element: <Home /> },
-      { path: 'main', element:<Welcome><AnimateUser><App /></AnimateUser></Welcome> },
-      { path: 'welcome', element: <Welcome><AnimateUser><App /></AnimateUser></Welcome> },
+      { path: 'main', element:<Welcome><App /></Welcome> },
+      { path: 'welcome', element: <Welcome><App /></Welcome> },
+       {path:'telegramverify',element:<Sessionverify><Telegramverify/></Sessionverify>},
     ],
   },
   {path:'*',
   element:<Pagenotfound/>
   },
-  {
-    path:'telegramverify',
-    errorElement:<ErrorFallback/>,
-    element:<Sessionverify><Telegramverify/></Sessionverify>
-  },
+ 
  
 
 ])

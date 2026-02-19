@@ -3,6 +3,7 @@ import { authClient } from '../../lib/auth-client'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import type { ReactNode } from 'react';
+import AnimateUser from './AnimateUser';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 
@@ -23,6 +24,7 @@ function Welcome({children}:Props) {
   const [fname,setFname]= useState('')
   const [lname,setLname]= useState('')
   const [loading,setLoading]= useState(false)
+  const [checkLoading,setcheckLoading]= useState(false)
   
   
   const [canmove,setCanMove]= useState(false)
@@ -106,11 +108,13 @@ function Welcome({children}:Props) {
         console.log(error)
       }finally{
         setLoading(false)
+        setcheckLoading(false)
       }
    }
 
    useEffect(()=>{
     if(session?.user?.email){
+      setcheckLoading(true)
       getUserStatus(session.user.email)
     }
    },[session])
@@ -127,9 +131,11 @@ function Welcome({children}:Props) {
     updateUserInfo(session.user.email)
    }
 
-   if(isPending){
+   if(isPending ){
     return <div className='mt-10 flex justify-center items-center'>Loading session...</div>
    }
+
+   if(checkLoading) return <AnimateUser/>
 
    if( canmove  ) {
     return children

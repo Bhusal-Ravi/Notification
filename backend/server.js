@@ -22,6 +22,7 @@ import checkuserexistRoute from './routes/checkuserexist.js'
 import setuserinfoRoute from './routes/setuserinfo.js'
 import telegramstatusRoute from './routes/telegramstatuscheck.js'
 import customnotificationRoute from './routes/customnotification.js'
+import telegramverifyRoute from './routes/telegramverify.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 import { fileURLToPath } from 'url'
@@ -188,7 +189,7 @@ app.use('/api',checkuserexistRoute)
 app.use('/api',setuserinfoRoute)
 app.use('/api',telegramstatusRoute)
 app.use('/api',customnotificationRoute)
-
+app.use('/api',telegramverifyRoute)
 const currentDir= path.dirname(fileURLToPath(import.meta.url))
 
 const sslServer= https.createServer({
