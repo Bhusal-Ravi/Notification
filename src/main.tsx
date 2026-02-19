@@ -6,7 +6,7 @@ import App from './components/App.tsx'
 import Home from './components/Home.tsx'
 import Layout from './components/Layout.tsx'
 import Welcome from './components/Welcome.tsx';
-import AnimateUser from './components/AnimateUser.tsx';
+
 import ErrorFallback from './components/ErrorFallBack.tsx';
 import Pagenotfound from './components/ui/Pagenotfound.tsx';
 import Sessionverify from './components/Sessionverify.tsx';
