@@ -34,10 +34,10 @@ router.put('/customnotification',authenticateSession,limiter, async(req,res)=>{
                 return res.status(400).json({message:"Provided Email is Invalid"})
             }
             const userid= userresponse.rows[0].userid
-            const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type)
-                                                values($1,$2,$3)
+                       const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type,taskpriority)
+                                                values($1,$2,$3,$4)
                                                 returning taskid
-                                                `,[title,'custom',type])
+                                                `,[title,'custom',type,'usercreated'])
 
             if(taskresponse.rowCount===0){
                 await client.query('ABORT') 
@@ -73,10 +73,10 @@ router.put('/customnotification',authenticateSession,limiter, async(req,res)=>{
                 return res.status(400).json({message:"Provided Email is Invalid"})
             }
             const userid= userresponse.rows[0].userid
-            const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type)
-                                                values($1,$2,$3)
+                       const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type,taskpriority)
+                                                values($1,$2,$3,$4)
                                                 returning taskid
-                                                `,[title,'custom',type])
+                                                `,[title,'custom',type,'usercreated'])
 
             if(taskresponse.rowCount===0){
                 await client.query('ABORT') 
@@ -116,10 +116,10 @@ router.put('/customnotification',authenticateSession,limiter, async(req,res)=>{
                 return res.status(400).json({message:"Provided Email is Invalid"})
             }
             const userid= userresponse.rows[0].userid
-            const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type)
-                                                values($1,$2,$3)
+            const taskresponse= await client.query(`insert into task (taskname,tasktype,notification_type,taskpriority)
+                                                values($1,$2,$3,$4)
                                                 returning taskid
-                                                `,[title,'custom',type])
+                                                `,[title,'custom',type,'usercreated'])
 
             if(taskresponse.rowCount===0){
                 await client.query('ABORT') 

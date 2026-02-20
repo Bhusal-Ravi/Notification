@@ -13,10 +13,12 @@ router.get('/updateget/:userid', authenticateSession,async (req,res)=>{
         if(!userid){
             return res.status(400).json({message:"No userid provided"})
         }
-        const response= await client.query(`select tu.taskid,tu.isactive,tu.timezone,tu.notify_after::text,tu.fixed_notify_time,t.taskname
+        const response= await client.query(`select tu.taskid,tu.isactive,tu.timezone,tu.notify_after::text,tu.fixed_notify_time,fixed_notify_date,t.taskname,
+                                            t.notification_type,t.createdat,t.taskpriority
                                             from taskuser tu
                                             join task t on t.taskid=tu.taskid
-                                            where userid=$1`,[userid])
+                                            where userid=$1
+                                            order by t.createdat desc`,[userid])
         if(response.rowCount===0){
           return  res.status(200).json({message:"No task found"})
         }  

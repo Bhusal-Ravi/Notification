@@ -34,6 +34,7 @@ function App() {
   const [userStreak,setUserStreak]= useState<UserStreak[]>([])
   const [loadinginfo,setLoadingInfo]= useState<boolean>(false)
    const [loadingstreak,setLoadingStreak]= useState<boolean>(false)
+  const [hasInitialized, setHasInitialized] = useState<boolean>(false)
   const totalActiveTasks:number = userinfo.length
   const uniqueTimezones:number = new Set(userinfo.map(task => task.timezone)).size
   const intervalDriven:number = userinfo.filter(task => task.notify_after && task.notify_after !== '0')?.length
@@ -59,11 +60,12 @@ function App() {
   }
 
   useEffect(() => {
-    if (!isPending && session?.user?.email) {
+    if (!isPending && session?.user?.email && !hasInitialized) {
       console.log(session)
       fetchUser(session.user.email)
+      setHasInitialized(true)
     }
-  }, [session, isPending])
+  }, [session?.user?.email, isPending, hasInitialized])
 
   async function fetchUserinfo(){
     try{

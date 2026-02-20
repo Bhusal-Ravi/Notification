@@ -32,6 +32,7 @@ function Welcome({children}:Props) {
   const [statusCards, setStatusCards] = useState<{id:number; text:string; variant:'success'|'error'}[]>([])
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
+  const hasCheckedRef = useRef(false)
  
 
 
@@ -113,11 +114,12 @@ function Welcome({children}:Props) {
    }
 
    useEffect(()=>{
-    if(session?.user?.email){
+    if(session?.user?.email && !hasCheckedRef.current){
       setcheckLoading(true)
       getUserStatus(session.user.email)
+      hasCheckedRef.current = true
     }
-   },[session])
+   },[session?.user?.email])
 
    useEffect(()=>{
 
