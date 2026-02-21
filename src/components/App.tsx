@@ -201,8 +201,8 @@ function App() {
         </div>
 
         <div className='relative mt-10 grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3'>
-          {userinfo.map((data) => (
-            <div key={data.taskname} className='bg-black rounded-2xl '>
+          {userinfo.map((data,index) => (
+            <div key={data.taskname.concat(index.toString())} className='bg-black rounded-2xl '>
             <article
               className='group border-[4px] h-full w-full border-black  rounded-2xl p-4 -translate-x-2 -translate-y-2 transition duration-200 hover:-translate-y-3 hover:-translate-x-3 hover:bg-[#ffe6c7] bg-[#fff9ef]'
             >
