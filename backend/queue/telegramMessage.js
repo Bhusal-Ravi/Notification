@@ -3,7 +3,7 @@ import { pool } from "../config/dbConnection.js"
 import { Queue, Worker } from "bullmq"
 // import { connection } from "../config/redisConnection.js"
 import { bot } from "../services/telegram.js"
-import { exerciseReminders, waterReminders } from "../services/messages.js"
+import { customTaskReminder, exerciseReminders, waterReminders } from "../services/messages.js"
 import { connection } from "../config/redisConnection.js"
 
 const telegramQueue = new Queue('telegram', { connection })
@@ -13,22 +13,47 @@ const telegramWorker = new Worker(
         try{
 
        
-        const { chat_id, fname, lname, taskname,days,hours, minutes,present_time,next_notify_time } = job.data
+        const { chat_id, fname, lname, taskname,days,hours, minutes,present_time,next_notify_time,notification_type,taskpriority } = job.data
 
         if (taskname === 'Drink Water') {
              const reminderTemplates = waterReminders({ fname, lname, days, hours, minutes, present_time, next_notify_time })
             const message = reminderTemplates[Math.floor(Math.random() * reminderTemplates.length)]
 
-            await bot.sendMessage(chat_id, message)
+            await bot.sendMessage(chat_id, message,{
+            parse_mode:"Markdown"
+        })
         }
 
         if (taskname === 'Daily Exercise') {
               const reminderTemplates = exerciseReminders({ fname, lname, days, hours, minutes, present_time, next_notify_time })
             const message = reminderTemplates[Math.floor(Math.random() * reminderTemplates.length)]
             await bot.sendMessage(
-                chat_id,message
+                chat_id,message,{
+            parse_mode:"Markdown"
+        }
             )
         }
+
+        if(taskpriority==='usercreated'){
+            console.log("Came here")
+             const reminderTemplates=customTaskReminder({
+  fname,
+  lname,
+  taskname,
+  days ,
+  hours ,
+  minutes ,
+  present_time ,
+  next_notify_time,
+  notification_type,
+}) || "Custom Message "
+
+        await bot.sendMessage(chat_id, reminderTemplates,{
+            parse_mode:"Markdown"
+        })
+        }
+
+
          }catch(error){
             console.log(error) 
             throw  error
@@ -49,8 +74,18 @@ const telegramWorker = new Worker(
 telegramWorker.on('completed',async  job => {
     const client= await pool.connect()
     try {
-        const { userid,taskid } = job.data
+        const { userid,taskid,notification_type } = job.data
 
+        if(notification_type==='third'){
+            const completeUpdate= await client.query(`update task
+                                            set completed=true
+                                            and taskid=$1
+                                            and notification_type=$2`,[taskid,'third'])
+            
+            if(completeUpdate.rowCount>0){
+            console.log(`Completed updated for userid:${userid} and taskid:${taskid}`)
+        }
+        }else {
         const lastcheckUpdate=await client.query(`update taskuser
                         set lastcheck=now()
                         where userid=$1
@@ -59,6 +94,7 @@ telegramWorker.on('completed',async  job => {
         if(lastcheckUpdate.rowCount>0){
             console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
         }
+    }
 
         console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
     } catch (error) {
@@ -85,7 +121,7 @@ export async function enqueueWaterMessage(){
                                         extract (day from now()-tu.last_user_activity)  as days,
                                         extract ( hour from now()-tu.last_user_activity)  as hours,
                                         extract ( minute from now()-tu.last_user_activity)  as minutes,
-                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname from userInfo u
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.notification_type from userInfo u
                                          join telegramusers t
                                          on t.userid=u.userid
                                          join taskuser tu
@@ -178,6 +214,206 @@ export async function enqueueExerciseMessage(){
                                                                 minutes:user.minutes,
                                                                 present_time:user.present_time,
                                                                 next_notify_time:user.next_notify_time},{
+                                                                    attempts:3,
+                                                                    backoff:{
+                                                                        type:'fixed',
+                                                                        delay:3000
+                                                                    },
+                                                                }
+                    )
+                }
+    }catch(error){
+        
+        console.log(error)
+    } finally {
+        client.release()
+    }
+
+}
+
+export async function customType1 (){
+        const client=await  pool.connect()
+     try {
+        const users= await client.query(`select 
+                                        TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+                                        TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
+                                        extract (day from now()-tu.last_user_activity)  as days,
+                                        extract ( hour from now()-tu.last_user_activity)  as hours,
+                                        extract ( minute from now()-tu.last_user_activity)  as minutes,
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.taskpriority,tt.notification_type,tt.completed  from userInfo u
+                                         join telegramusers t
+                                         on t.userid=u.userid
+                                         join taskuser tu
+                                         on  tu.userid=u.userid
+										 join task tt
+										 on tt.taskid=tu.taskid
+										 where tu.isactive=$1 
+                                         and tt.taskpriority=$2
+                                         and notification_type=$3
+                                         and now()- tu.last_user_activity>= tu.notify_after
+                                         and now()-lastcheck>= tu.notify_after
+                                         and ( now() at time zone 'Asia/Kathmandu')::time >= tu.online
+                                         and ( now() at time zone 'Asia/Kathmandu')::time <= tu.offline
+                                         `,[true,'usercreated','first'])
+                                         
+
+                
+               
+                                         
+                for (const user of users.rows){
+                    console.log("user",user)
+                    await telegramQueue.add(
+                        `custom_type1 chatid: ${user.chat_id}`,{chat_id:user.chat_id,
+                                                                userid:user.userid,
+                                                                taskname:user.taskname,
+                                                                fname:user.fname,
+                                                                lname:user.lname,
+                                                                taskid:user.taskid,
+                                                                days:user.days,
+                                                                hours:user.hours,
+                                                                minutes:user.minutes,
+                                                                present_time:user.present_time,
+                                                                next_notify_time:user.next_notify_time,
+                                                                notification_type:user.notification_type,
+                                                                taskpriority:user.taskpriority,
+                                                                completed: user.completed 
+                                                            },{
+                                                                    attempts:3,
+                                                                    backoff:{
+                                                                        type:'fixed',
+                                                                        delay:3000
+                                                                    },
+                                                                }
+                    )
+                }
+    }catch(error){
+        
+        console.log(error)
+    } finally {
+        client.release()
+    }
+
+}
+
+
+export async function  customType2(){
+        const client=await  pool.connect()
+     try {
+        const users= await client.query(`select 
+                                        TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+                                        TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
+                                        extract (day from now()-tu.last_user_activity)  as days,
+                                        extract ( hour from now()-tu.last_user_activity)  as hours,
+                                        extract ( minute from now()-tu.last_user_activity)  as minutes,
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.taskpriority,tt.notification_type,tt.completed from userInfo u
+                                         join telegramusers t
+                                         on t.userid=u.userid
+                                         join taskuser tu
+                                         on  tu.userid=u.userid
+										 join task tt
+										 on tt.taskid=tu.taskid
+										 where tu.isactive=$1 
+										 and now()>= (
+										 (
+											date_trunc('day',now() at time zone tu.timezone)
+											+ tu.fixed_notify_time
+											)at time zone tu.timezone
+										 ) 
+                                            and (now() at time zone tu.timezone)::time between tu.fixed_notify_time and tu.fixed_notify_time + interval '5 minutes'
+                                         and tt.taskpriority=$2
+                                         and notification_type=$3
+                                         and now()-lastcheck>= tu.notify_after
+                                         `,[true,'usercreated','second'])
+                                         
+
+                
+               console.log("Customtype2hello",users.rows)
+                                         
+                for (const user of users.rows){
+                    console.log("user",user)
+                    await telegramQueue.add(
+                        `custom_type2 chatid: ${user.chat_id}`,{chat_id:user.chat_id,
+                                                                userid:user.userid,
+                                                                taskname:user.taskname,
+                                                                fname:user.fname,
+                                                                lname:user.lname,
+                                                                taskid:user.taskid,
+                                                                days:user.days,
+                                                                hours:user.hours,
+                                                                minutes:user.minutes,
+                                                                present_time:user.present_time,
+                                                                next_notify_time:user.next_notify_time,
+                                                                notification_type:user.notification_type,
+                                                                taskpriority:user.taskpriority,
+                                                                completed: user.completed 
+                                                            },{
+                                                                    attempts:3,
+                                                                    backoff:{
+                                                                        type:'fixed',
+                                                                        delay:3000
+                                                                    },
+                                                                }
+                    )
+                }
+    }catch(error){
+        
+        console.log(error)
+    } finally {
+        client.release()
+    }
+
+}
+
+
+export async function  customType3(){
+        const client=await  pool.connect()
+     try {
+        const users= await client.query(`
+select 
+                                        TO_CHAR(((now()+ notify_after) at time zone timezone)::time,'HH12:MI:SS AM') as next_notify_time, 
+                                        TO_CHAR((now() at time zone tu.timezone)::time,'HH12:MI:SS AM') as present_time,
+                                        extract (day from now()-tu.last_user_activity)  as days,
+                                        extract ( hour from now()-tu.last_user_activity)  as hours,
+                                        extract ( minute from now()-tu.last_user_activity)  as minutes,
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.taskpriority,tt.notification_type,tt.completed from userInfo u
+                                         join telegramusers t
+                                         on t.userid=u.userid
+                                         join taskuser tu
+                                         on  tu.userid=u.userid
+										 join task tt
+										 on tt.taskid=tu.taskid
+										 where tu.isactive=true
+										 and  (now() at time zone tu.timezone)::date = tu.fixed_notify_date
+                                         
+                                        and (now() at time zone tu.timezone)::time between tu.fixed_notify_time and tu.fixed_notify_time + interval '5 minutes'
+                                        and tt.completed=$1 
+                                        and tt.taskpriority=$2
+                                         and notification_type=$3
+   
+                                         `,[false,'usercreated','third'])
+                                         
+
+                
+               console.log("Customtype3hello",users.rows)
+                                         
+                for (const user of users.rows){
+                    console.log("user",user)
+                    await telegramQueue.add(
+                        `custom_type3 chatid: ${user.chat_id}`,{chat_id:user.chat_id,
+                                                                userid:user.userid,
+                                                                taskname:user.taskname,
+                                                                fname:user.fname,
+                                                                lname:user.lname,
+                                                                taskid:user.taskid,
+                                                                days:user.days,
+                                                                hours:user.hours,
+                                                                minutes:user.minutes,
+                                                                present_time:user.present_time,
+                                                                next_notify_time:user.next_notify_time,
+                                                                notification_type:user.notification_type,
+                                                                taskpriority:user.taskpriority,
+                                                                completed: user.completed 
+                                                            },{
                                                                     attempts:3,
                                                                     backoff:{
                                                                         type:'fixed',

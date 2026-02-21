@@ -12,7 +12,7 @@ import { dbConnect } from './config/dbConnection.js'
 import healthcheckRoute from './routes/healthcheck.js'
 import { Queue, Worker } from 'bullmq'
 
-import { enqueueWaterMessage,enqueueExerciseMessage } from './queue/telegramMessage.js'
+import { enqueueWaterMessage,enqueueExerciseMessage, customType1, customType2, customType3 } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
 import { enqueueqotd } from './queue/quoteoftheday.js'
@@ -108,6 +108,26 @@ export const notificationWorker = new Worker('schedular', async job => {
             await enqueueqotd()
 
         }
+
+          if(job.name==='custom_type_1'){
+            console.log(`Custom1 Notification Enqueued`)
+            await customType1()
+
+        }
+
+          if(job.name==='custom_type_2'){
+            console.log(`Custom2 Notification Enqueued`)
+           await  customType2()
+            
+
+        }
+
+          if(job.name==='custom_type_3'){
+            console.log(`Custom3 Notification Enqueued`)
+             await  customType3()
+          
+
+        }
     
 
 
@@ -176,6 +196,39 @@ await notificationQueue.upsertJobScheduler(
     {
         name: 'Quote_Of_The_Day',
         data: { message: 'Quote_Of_The_Day Enqueing'}
+    }
+)
+
+await notificationQueue.upsertJobScheduler(
+    'custom_type_1',
+    {
+        pattern: '* * * * *'
+    },
+    {
+        name: 'custom_type_1',
+        data:{message:'Custom Type 1 Enqueing'}
+    }
+)
+
+await notificationQueue.upsertJobScheduler(
+    'custom_type_2',
+    {
+        pattern: '* * * * *'
+    },
+    {
+        name: 'custom_type_2',
+        data:{message:'Custom Type 2 Enqueing'}
+    }
+)
+
+await notificationQueue.upsertJobScheduler(
+    'custom_type_3',
+    {
+        pattern: '* * * * *'
+    },
+    {
+        name: 'custom_type_3',
+        data:{message:'Custom Type 3 Enqueing'}
     }
 )
 

@@ -295,10 +295,29 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                   <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
                     <Clock size={11} /> Fixed Notify Time
                   </label>
-                  <input
-                    type="time"
-                    {...register(`tasks.${index}.fixed_notify_time`, { required: true })}
-                    className="border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all"
+                  <Controller
+                    control={control}
+                    name={`tasks.${index}.fixed_notify_time`}
+                    render={({ field: f }) => {
+                      let inputValue = f.value ?? '';
+                      let isDisabled = false;
+                      if (field.taskid === 5) {
+                        inputValue = '00:00';
+                        isDisabled = true;
+                      } else if (field.taskid === 6) {
+                        inputValue = '06:00';
+                        isDisabled = true;
+                      }
+                      return (
+                        <input
+                          type="time"
+                          value={inputValue}
+                          onChange={f.onChange}
+                          disabled={isDisabled}
+                          className="border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all disabled:bg-[#e0e0e0] disabled:text-[#888]"
+                        />
+                      );
+                    }}
                   />
                 </div>
               )}
