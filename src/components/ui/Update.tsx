@@ -76,7 +76,7 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
   const [isLoading, setIsLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [showConfirmMsg, setShowConfirmMsg] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const notifType = field.notification_type
   const meta = TYPE_META[notifType]
 
