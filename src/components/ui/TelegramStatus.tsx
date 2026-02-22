@@ -58,7 +58,7 @@ function TelegramStatus({ email }: TelegramStatusProps) {
       ) : (
         <div className='flex justify-center items-center flex-col'>
           <p className='text-xs font-semibold uppercase tracking-widest text-[#0b0b0d]'>Telegram Not Linked</p>
-          <p className='mt-1 text-lg font-black text-[#0b0b0d]'>You are not currently linked to Telegram</p>
+          <p className='mt-1 text-lg font-black text-[#0b0b0d]'>Link your telegram to start receiving notifications</p>
           <button 
             onClick={() => navigate('/telegramverify')} 
             className='mt-4 rounded-md bg-black'

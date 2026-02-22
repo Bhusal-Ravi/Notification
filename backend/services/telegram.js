@@ -17,6 +17,7 @@ export const bot = new TelegramBot(token, {
       timeout: 10
     }
   },
+
   request: {
     timeout: 60000 // 60 seconds
   }
@@ -187,7 +188,9 @@ bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
 
       await bot.sendMessage(chatId, `✅ You are officially registered to the notification system under [${email}]`)
     }catch (err) {
-  await client.query('ROLLBACK');
+  if (client) {
+    await client.query('ROLLBACK');
+  }
       console.log(err)
   if (err.message === 'EMAIL_NOT_REGISTERED') {
    await  bot.sendMessage(chatId, '❌ Email not registered with us');
@@ -197,7 +200,7 @@ bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
    await  bot.sendMessage(chatId, '❌ Something went wrong');
   }
 }finally {
-  client.release();
+  if(client) client.release();
 }
 
   
@@ -366,13 +369,15 @@ or You may not have activated the particular service `)
 
                 
           await client.query('COMMIT')
-          client.release()
           
           }catch(error){
-            await client.query('ROLLBACK')
-            client.release()
+            if (client) {
+              await client.query('ROLLBACK')
+            }
            
               await bot.sendMessage(chatId,'❌ Could not perform your task at the moment')
+        }finally {
+          if(client) client.release()
         }
 })
 

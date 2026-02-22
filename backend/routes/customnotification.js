@@ -154,14 +154,16 @@ router.put('/customnotification',authenticateSession,limiter, async(req,res)=>{
             return res.status(200).json({message:"Successfully added you notification"})                                   
                                                    
     }catch(error){
-         await client.query('ROLLBACK') 
+         if(client) {
+             await client.query('ROLLBACK')
+         }
           console.log("Error:", error.message)
           console.log(error)
           return res.status(500).json({message:"Server error"})
          
         
     }finally{
-        client.release()
+        if(client) client.release()
     }
 })
 

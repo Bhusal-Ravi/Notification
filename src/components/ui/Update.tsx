@@ -75,6 +75,8 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [showConfirmMsg, setShowConfirmMsg] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const notifType = field.notification_type
   const meta = TYPE_META[notifType]
 
@@ -146,26 +148,41 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
           {field.taskname}
         </h3>
 
-        {/* Active / Paused toggle */}
+        {/* Active / Paused toggle with warning */}
         <Controller
           control={control}
           name={`tasks.${index}.isactive`}
           render={({ field: f }) => {
             const active = isActiveTrue(f.value)
+            const handleClick = (e: React.MouseEvent) => {
+              e.stopPropagation()
+              f.onChange(active ? 'false' : 'true')
+              setShowConfirmMsg(true)
+              if (timeoutRef.current) clearTimeout(timeoutRef.current)
+              timeoutRef.current = setTimeout(() => setShowConfirmMsg(false), 4000)
+            }
+            useEffect(() => {
+              return () => {
+                if (timeoutRef.current) clearTimeout(timeoutRef.current)
+              }
+            }, [])
             return (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  // Always store as string "true"/"false" for consistency
-                  f.onChange(active ? 'false' : 'true')
-                }}
-                className={`shrink-0 border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[3px_3px_0_#0b0b0d] transition-colors ${
-                  active ? 'bg-[#2fff2f] text-[#0b0b0d]' : 'bg-[#e0e0e0] text-[#555]'
-                }`}
-              >
-                {active ? 'Active' : 'Paused'}
-              </button>
+              <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={handleClick}
+                  className={`shrink-0 border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[3px_3px_0_#0b0b0d] transition-colors ${
+                    active ? 'bg-[#2fff2f] text-[#0b0b0d]' : 'bg-[#e0e0e0] text-[#555]'
+                  }`}
+                >
+                  {active ? 'Active' : 'Paused'}
+                </button>
+                {showConfirmMsg && (
+                  <span className="mt-1  text-xs text-red-600 font-semibold text-center max-w-[160px]">
+                    Changes apply only after you expand the card and press Confirm.
+                  </span>
+                )}
+              </div>
             )
           }}
         />
@@ -174,9 +191,10 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
         <button
           type="button"
           onClick={() => setExpanded(prev => !prev)}
-          className={`shrink-0 border-[2.5px] border-black p-1.5 shadow-[3px_3px_0_#0b0b0d] transition-all ${meta.color} hover:brightness-95`}
+          className={`shrink-0 border-[2.5px] border-black p-1.5 shadow-[3px_3px_0_#0b0b0d] transition-all ${meta.color} hover:brightness-95 flex items-center gap-2`}
           aria-label={expanded ? 'Collapse' : 'Expand'}
         >
+          <span className="text-xs font-bold text-gray-700">Edit</span>
           <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown size={14} strokeWidth={3} />
           </motion.div>
@@ -298,26 +316,19 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                   <Controller
                     control={control}
                     name={`tasks.${index}.fixed_notify_time`}
-                    render={({ field: f }) => {
-                      let inputValue = f.value ?? '';
-                      let isDisabled = false;
-                      if (field.taskid === 5) {
-                        inputValue = '00:00';
-                        isDisabled = true;
-                      } else if (field.taskid === 6) {
-                        inputValue = '06:00';
-                        isDisabled = true;
-                      }
-                      return (
-                        <input
-                          type="time"
-                          value={inputValue}
-                          onChange={f.onChange}
-                          disabled={isDisabled}
-                          className="border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all disabled:bg-[#e0e0e0] disabled:text-[#888]"
-                        />
-                      );
-                    }}
+                    rules={{ required: true }}
+                    render={({ field: f }) => (
+                      <input
+                        type="time"
+                        disabled={field.taskid === 5 || field.taskid === 6}
+                        value={f.value || (field.taskid === 5 ? '00:00' : field.taskid === 6 ? '06:00' : '')}
+                        onChange={f.onChange}
+                        onBlur={f.onBlur}
+                        className={`border-[3px] border-black px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all ${
+                          field.taskid === 5 || field.taskid === 6 ? 'bg-gray-200 cursor-not-allowed opacity-60' : 'bg-[#fefefe]'
+                        }`}
+                      />
+                    )}
                   />
                 </div>
               )}
@@ -329,10 +340,22 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                     <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
                       <Clock size={11} /> Fixed Notify Time
                     </label>
-                    <input
-                      type="time"
-                      {...register(`tasks.${index}.fixed_notify_time`, { required: true })}
-                      className="border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all"
+                    <Controller
+                      control={control}
+                      name={`tasks.${index}.fixed_notify_time`}
+                      rules={{ required: true }}
+                      render={({ field: f }) => (
+                        <input
+                          type="time"
+                          disabled={field.taskid === 5 || field.taskid === 6}
+                          value={f.value || (field.taskid === 5 ? '00:00' : field.taskid === 6 ? '06:00' : '')}
+                          onChange={f.onChange}
+                          onBlur={f.onBlur}
+                          className={`border-[3px] border-black px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all ${
+                            field.taskid === 5 || field.taskid === 6 ? 'bg-gray-200 cursor-not-allowed opacity-60' : 'bg-[#fefefe]'
+                          }`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -538,12 +561,12 @@ function Update({ userid }: UpdateProps) {
                 Update Center
               </p>
               {/* Refresh button */}
-              <div className="relative ml-2 h-10 w-10 group">
+              <div className="relative ml-auto h-10 w-auto group">
                 <button
                   type="button"
                   disabled={refreshingTasks}
                   onClick={fetchUsertask}
-                  className="absolute inset-0 z-10 flex h-full w-full items-center justify-center border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]"
+                  className="relative z-10 flex items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036] h-full"
                 >
                   {refreshingTasks ? (
                     <svg className="h-4 w-4 animate-spin text-black" viewBox="0 0 24 24" fill="none">
@@ -551,11 +574,14 @@ function Update({ userid }: UpdateProps) {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                     </svg>
                   ) : (
-                    <RefreshCcw size={16} />
+                    <>
+                      <p className="text-xs font-bold">Refresh</p>
+                      <RefreshCcw size={16} />
+                    </>
                   )}
                 </button>
-                <span className="absolute inset-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3" />
-                <span className="absolute inset-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5" />
+                <span className="absolute inset-0 z-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3" />
+                <span className="absolute inset-0 z-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5" />
               </div>
             </div>
 

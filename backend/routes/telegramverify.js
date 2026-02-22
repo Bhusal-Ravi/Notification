@@ -50,8 +50,8 @@ router.post('/telegramverify', authenticateSession, async (req,res)=>{
     }catch(error){
         console.log(error)
         if (client) {
-    await client.query('ROLLBACK');
-}
+            await client.query('ROLLBACK');
+        }
         if(error.code==='23505'){
             
            return res.status(409).json({message:"You have already generated an OTP, wait 5 minutes before trying again"})

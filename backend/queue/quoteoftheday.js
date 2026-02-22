@@ -82,7 +82,7 @@ quoteofthedayworker.on('completed',async  job => {
     } catch (error) {
         console.error('Failed to finalize QOTD job', error)
     } finally {
-        client.release()
+        if(client) client.release()
     }
 })
 
@@ -152,7 +152,7 @@ export async function enqueueqotd(){
     }catch(error){
         console.log(error)
     }finally{
-         client.release()
+         if(client) client.release()
     }
 }
 

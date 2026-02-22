@@ -143,43 +143,45 @@ function App() {
 
         <div className='relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
           <div>
-            <div className='flex   items-center'>
-            <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
-              Subscriptions Live
-            </p>
-           <div className='relative ml-[25px] w-10 h-10 px-4 py-1 group'>
-              <button disabled={loadinginfo} onClick={fetchUserinfo} className=' flex items-center group-hover:bg-[#08a036] justify-center absolute inset-0 z-10 h-full w-full group cursor-pointer shadow-[6px_6px_0_#0b0b0d] bg-[#2FFF2F]  justify-center'>
+            <div className='flex items-center justify-between w-full'>
+              <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
+                Subscriptions Live
+              </p>
+              <div className='relative h-10 w-auto group'>
+                <button disabled={loadinginfo} onClick={fetchUserinfo} className='relative z-10 flex items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2FFF2F] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036] h-full'>
                   {loadinginfo ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg
-                          className="h-5 w-5 animate-spin text-black"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                          />
-                        </svg>
-                      
-                      </span>):<RefreshCcw />
-    }
-              </button>
-           <span className='absolute inset-0 z-9 translate-all duration-200 bg-[#7DF9FF] h-full w-full group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
-           <span className='absolute inset-0 z-9 bg-[#FF9F66] translate-all duration-200 h-full w-full group-hover:translate-x-5 group-hover:translate-y-5'></span>
-           </div>
-
+                    <svg
+                      className="h-4 w-4 animate-spin text-black"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                  ) : (
+                    <>
+                      <p className="text-xs font-bold">Refresh</p>
+                      <RefreshCcw size={16} />
+                    </>
+                  )}
+                </button>
+                <span className='absolute inset-0 z-0 bg-[#7DF9FF] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
+                <span className='absolute inset-0 z-0 bg-[#FF9F66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
+              </div>
             </div>
+
             <h1 className='mt-4 text-3xl font-black uppercase leading-tight text-[#0b0b0d] sm:text-[44px]'>Notification Subscription Hub</h1>
             <p className='mt-3 max-w-lg text-base font-medium text-[#333]'>Dashboard to view your active notification subscriptions.</p>
           </div>
@@ -248,20 +250,20 @@ function App() {
       </section>
 
       <section className='mt-8 w-full relative max-w-6xl overflow-hidden border-[4px] border-black bg-[#fefefe] px-6 py-8 text-center shadow-[10px_10px_0_#0b0b0d]'>
-        <div className='pointer-events-none z-0   border-5 opacity-70 border-[#272928] -top-20 -right-20 sm:-top-10 sm:-right-15 transition-all bg-[#ff9f66] rounded-full h-48 w-48 rotate-45 absolute'></div>
-         <div className='pointer-events-none z-0  border-5 opacity-70 border-[#272928] -bottom-10 -left-20 sm:-bottom-10 sm:-right-15 bg-[#2fff2f] rounded-full h-48 w-48 rotate-45 absolute'></div>
-          <div className='  flex flex-col sm:flex-row sm:justify-between items-center relative'>
+        <div className='pointer-events-none z-0   border-5 opacity-70 border-[#272928] -top-20 -right-20 sm:-top-10 sm:-right-15 md:-top-5 md:-right-10 transition-all bg-[#ff9f66] rounded-full h-48 w-48 sm:h-64 sm:w-64 md:h-80 md:w-80 rotate-45 absolute'></div>
+         <div className='pointer-events-none z-0  border-5 opacity-70 border-[#272928] -bottom-10 -left-20 sm:-bottom-10 sm:-right-15 md:-bottom-5 md:-left-10 bg-[#2fff2f] rounded-full h-48 w-48 sm:h-64 sm:w-64 md:h-80 md:w-80 rotate-45 absolute'></div>
+          <div className='  flex flex-col sm:flex-row sm:justify-between items-start relative mb-6'>
             <div className='w-full'>
-              <div className='flex flex-wrap items-center gap-3'>
+              <div className='flex flex-col items-start w-full gap-3'>
                 <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
                   Daily Streak Monitor
                 </p>
-                <div className='relative h-10 w-10 group'>
+                <div className='relative h-10 w-auto group'>
                   <button
                     type='button'
                     disabled={loadingstreak}
                     onClick={fetchUserStreak}
-                    className='absolute inset-0 z-10 flex h-full w-full items-center justify-center border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]'
+                    className='relative z-10  flex h-full items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]'
                   >
                     {loadingstreak ? (
                       <svg
@@ -285,17 +287,20 @@ function App() {
                         />
                       </svg>
                     ) : (
-                      <RefreshCcw size={16} />
+                      <>
+                        <p className='text-xs font-bold'>Refresh</p>
+                        <RefreshCcw size={16} />
+                      </>
                     )}
                   </button>
-                  <span className='absolute inset-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
-                  <span className='absolute inset-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
+                  <span className='absolute inset-0 z-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
+                  <span className='absolute inset-0 z-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
                 </div>
               </div>
             <h2 className='mt-4 text-3xl sm:text-[44px] leading-tight font-black uppercase text-left text-[#0b0b0d]'>Your Daily Streak</h2>
             <p className='mt-1 mb-5 text-left  text-base font-medium text-[#133c1b]'>These are the inputs from your side</p>
           </div>
-          <div className='grid grid-cols-1 w-full sm:w-auto sm:grid-cols-2  gap-3'>
+          <div className='mt-6 grid grid-cols-1 w-full sm:w-auto sm:grid-cols-2  gap-3'>
             <div className=' bg-black '>
                 <span className='bg-[#2fff2f] h-full block -translate-x-1 px-4 py-4 text-left border-[4px] -translate-y-1'>
                   <p className='text-xs font-semibold uppercase tracking-widest'>Currently Watching</p>

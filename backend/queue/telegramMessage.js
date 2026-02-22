@@ -100,7 +100,7 @@ telegramWorker.on('completed',async  job => {
     } catch (error) {
         console.error('Failed to finalize Telegram job', error)
     } finally {
-        client.release()
+        if(client) client.release()
     }
 })
 
@@ -165,7 +165,7 @@ export async function enqueueWaterMessage(){
         
         console.log(error)
     } finally {
-        client.release()
+        if(client) client.release()
     }
 }
 

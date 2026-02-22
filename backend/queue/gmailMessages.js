@@ -67,7 +67,7 @@ const mailOptions = {
     } catch (error) {
       console.error('Failed to finalize Gmail job', error)
     } finally {
-      client.release()
+      if(client) client.release()
     }
 
     })
@@ -126,7 +126,7 @@ const mailOptions = {
          }catch(error){
            console.log(error)
          }finally{
-           client.release()
+           if(client) client.release()
          }
 
 

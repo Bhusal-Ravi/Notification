@@ -55,14 +55,16 @@ router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
 
 
     }catch(error){
-        await client.query('ROLLBACK')
+        if(client) {
+            await client.query('ROLLBACK')
+        }
         if(error.code==='23505') {
             return res.status(409).json({message:'User already exists'})
         }
          console.error(error);
         res.status(500).json({ message: "Server error" });
     }finally{
-        client.release()
+        if(client) client.release()
     }
 })
 

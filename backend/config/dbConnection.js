@@ -7,7 +7,12 @@ const connectionString = process.env.POSTGRES_CONNECTION_STRING
 
 export const pool= new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
+    max: 25,
+    min: 2,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
+    statement_timeout: 30000
 })
 
 export async function dbConnect(){

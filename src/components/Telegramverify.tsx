@@ -1,5 +1,6 @@
 import { Copy, Check, ExternalLink, MessageSquare, Zap } from "lucide-react"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
@@ -8,6 +9,7 @@ function Telegramverify() {
     const [token, setToken] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
     const [copied, setCopied] = useState(false)
+    const navigate= useNavigate()
 
     async function getToken() {
         try {
@@ -162,7 +164,7 @@ function Telegramverify() {
                                                 </span>
                                             </button>
                                         </div>
-                                        <p className="text-xs font-semibold mt-3 text-gray-700">
+                                        <p className="text-lg font-semibold mt-3 text-gray-700">
                                             💡 Copy & Paste this token to the bot <code className="bg-white px-2 py-1 border border-black rounded font-mono">/link [token] [yourmail@gmail.com]</code>
                                         </p>
                                     </div>
@@ -199,6 +201,29 @@ function Telegramverify() {
                             </div>
                         </div>
                     </div>
+            {/* Step 4 */}
+            <div className="bg-white border-4 border-black rounded-lg shadow-[6px_6px_0px_0px_#000] p-6">
+                <div className="flex items-start gap-4">
+                    <div className="bg-[#72c1ff] w-12 h-12 rounded-md border-2 border-black flex items-center justify-center font-black text-xl shrink-0">
+                        4
+                    </div>
+                    <div className="flex-1">
+                        <h2 className="text-xl font-bold mb-3">Go Back to Home</h2>
+                        <p className="text-base font-medium text-gray-700 mb-4">
+                            After you have successfully linked your Telegram account, visit the home page to create or update your notifications.
+                        </p>
+                        <button
+                            onClick={() => navigate('/main')}
+                            className="rounded-md bg-black"
+                        >
+                            <span className="bg-[#72c1ff] inline-flex items-center gap-2 rounded-md border-2 border-black px-6 py-3 font-bold -translate-x-1 -translate-y-1 transition-all hover:-translate-x-2 hover:-translate-y-2 active:translate-x-0 active:translate-y-0">
+                                Home Page
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+                
                 </div>
 
                 {/* Help Section */}
