@@ -106,7 +106,7 @@ export async function enqueueqotd(){
                                                 where tu.taskid=6 and tu.isactive=true
                                                 and (now() at time zone tu.timezone)::time >= '06:00'
                                                 and (now() at time zone tu.timezone)::time < '06:15'
-                                                and  now()-lastcheck>= tu.notify_after  
+                                                and  now()-lastcheck>= interval '1 day ' 
                                             `)
         if(qotdUsers.rowCount>0){
             try{
