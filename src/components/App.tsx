@@ -1,362 +1,496 @@
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import Update from './ui/Update'
 import TelegramStatus from './ui/TelegramStatus'
-import { RefreshCcw } from 'lucide-react';
-import { authClient } from '../../lib/auth-client';
+import { RefreshCcw, Zap, Globe, Timer, Eye, TrendingUp, Calendar } from 'lucide-react'
+import { authClient } from '../../lib/auth-client'
 
+/**
+ * PALETTE — 4 intentional colors:
+ *
+ *  Ink        #1a1a1a   borders, text, shadows
+ *  Cream      #f2ece0   page base, card bg
+ *  Terracotta #c8624a   primary accent — warm, earthy, readable
+ *  Steel      #4a7c9e   secondary accent — cool counterweight
+ *  Straw      #d4a843   tertiary accent — used only on count/highlight moments
+ *
+ *  White #ffffff for chip contrast surfaces only.
+ *
+ *  Rule: Terracotta → Subscriptions section identity
+ *        Steel       → Streak section identity
+ *        Straw       → Count/number highlights across both
+ */
 
-
-
-
-
-
-
-type UserInfoRow= {
-  taskname:string
-  taskdescription:string
-  fixed_notify_time:string
-  timezone:string 
+type UserInfoRow = {
+  taskname: string
+  taskdescription: string
+  fixed_notify_time: string
+  timezone: string
   notify_after: string
 }
 
-type UserStreak={
-  taskname:string
-  count:number
+type UserStreak = {
+  taskname: string
+  count: number
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
+const Spinner = () => (
+  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+  </svg>
+)
+
+const RefreshBtn = ({ loading, onClick }: { loading: boolean; onClick: () => void }) => (
+  <button
+    disabled={loading}
+    onClick={onClick}
+    className="
+      group flex items-center gap-2
+      border-[3px] border-[#1a1a1a] bg-white
+      px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#1a1a1a]
+      shadow-[4px_4px_0_#1a1a1a]
+      transition-all duration-150
+      hover:shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px]
+      active:shadow-none active:translate-x-[4px] active:translate-y-[4px]
+      disabled:opacity-40 disabled:cursor-not-allowed
+    "
+  >
+    {loading
+      ? <><Spinner /><span>Loading…</span></>
+      : <><RefreshCcw size={13} className="transition-transform duration-500 group-hover:rotate-180" /><span>Refresh</span></>
+    }
+  </button>
+)
+
+const Tag = ({ children }: { children: React.ReactNode }) => (
+  <span className="border-[2.5px] border-[#1a1a1a] bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#1a1a1a] whitespace-nowrap text-[#1a1a1a]">
+    {children}
+  </span>
+)
+
+const EmptyState = ({ title, body }: { title: string; body: string }) => (
+  <div className="border-[3px] border-dashed border-[#1a1a1a]/20 px-6 py-16 text-center">
+    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/30">{title}</p>
+    <p className="mt-3 text-lg font-black text-[#1a1a1a]/40">{body}</p>
+  </div>
+)
+
 function App() {
   const { data: session, isPending } = authClient.useSession()
-  
-  const [userid,setUserId]= useState<string>('')
-  const [userinfo,setUserInfo]=useState<UserInfoRow[]>([])
-  const [userStreak,setUserStreak]= useState<UserStreak[]>([])
-  const [loadinginfo,setLoadingInfo]= useState<boolean>(false)
-   const [loadingstreak,setLoadingStreak]= useState<boolean>(false)
-  const [hasInitialized, setHasInitialized] = useState<boolean>(false)
-  const totalActiveTasks:number = userinfo.length
-  const uniqueTimezones:number = new Set(userinfo.map(task => task.timezone)).size
-  const intervalDriven:number = userinfo.filter(task => task.notify_after && task.notify_after !== '0')?.length
-  const currentlyWatching:number= userStreak?.length ?? 0
-  const userActivityCount:number = userStreak.reduce((acc,curr)=>curr.count ? acc + curr.count : acc ,0  )
+
+  const [userid, setUserId] = useState('')
+  const [userinfo, setUserInfo] = useState<UserInfoRow[]>([])
+  const [userStreak, setUserStreak] = useState<UserStreak[]>([])
+  const [loadinginfo, setLoadingInfo] = useState(false)
+  const [loadingstreak, setLoadingStreak] = useState(false)
+  const [hasInitialized, setHasInitialized] = useState(false)
+
+  const totalActiveTasks = userinfo.length
+  const uniqueTimezones = new Set(userinfo.map((t) => t.timezone)).size
+  const intervalDriven = userinfo.filter((t) => t.notify_after && t.notify_after !== '0').length
+  const currentlyWatching = userStreak.length
+  const userActivityCount = userStreak.reduce((acc, cur) => acc + (cur.count || 0), 0)
 
   async function fetchUser(email: string) {
     try {
-      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response = await fetch(`${base}/api/userexist`, {
-        method: 'POST',
-        credentials: 'include',
+      const res = await fetch(`${API_BASE_URL}/api/userexist`, {
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       })
-      const result = await response.json()
-      if (response.ok && result.status === 'pass' && result.data?.userid) {
-        setUserId(result.data.userid)
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
-    }
+      const result = await res.json()
+      if (res.ok && result.status === 'pass' && result.data?.userid) setUserId(result.data.userid)
+    } catch (e) { console.error(e) }
   }
 
   useEffect(() => {
     if (!isPending && session?.user?.email && !hasInitialized) {
-      console.log(session)
       fetchUser(session.user.email)
       setHasInitialized(true)
     }
   }, [session?.user?.email, isPending, hasInitialized])
 
-  async function fetchUserinfo(){
-    try{
+  async function fetchUserinfo() {
+    try {
       setLoadingInfo(true)
-      if(!userid) return
-      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response= await fetch(`${base}/api/userinfo/${userid}` ,{
-        method:'GET',
-        headers:{
-          'Content-Type':'application/json'
-          
-        },
-        credentials:"include"
+      if (!userid) return
+      const res = await fetch(`${API_BASE_URL}/api/userinfo/${userid}`, {
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
       })
-      const result= await response.json()
-      if(!response.ok){
-        throw new Error (result?.message)
-      }
-
-      const parsedData = Array.isArray(result?.data) ? result.data : []
-      setUserInfo(parsedData)
-      console.log(result?.data)
-
-    }catch(error){
-      console.log(error)
-    }finally{
-    setLoadingInfo(false)
-  }
+      const result = await res.json()
+      if (!res.ok) throw new Error(result?.message)
+      setUserInfo(Array.isArray(result?.data) ? result.data : [])
+    } catch (e) { console.log(e) }
+    finally { setLoadingInfo(false) }
   }
 
-  async function fetchUserStreak(){
-    try{
+  async function fetchUserStreak() {
+    try {
       setLoadingStreak(true)
-      if(!userid) return
-      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response= await fetch(`${base}/api/userstreak/${userid}` ,{
-        method:'GET',
-        headers:{
-          'Content-Type':'application/json'
-          
-        },
-        credentials:"include"
+      if (!userid) return
+      const res = await fetch(`${API_BASE_URL}/api/userstreak/${userid}`, {
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
       })
-      const result= await response.json()
-      if(!response.ok){
-        throw new Error (result.message)
-      }
-
-      const parsedData = Array.isArray(result?.data) ? result.data : []
-      setUserStreak(parsedData)
-
-      console.log(result.data)
-    }catch(error){
-      console.log(error)
-    }finally{
-      setLoadingStreak(false)
-    }
+      const result = await res.json()
+      if (!res.ok) throw new Error(result?.message)
+      setUserStreak(Array.isArray(result?.data) ? result.data : [])
+    } catch (e) { console.log(e) }
+    finally { setLoadingStreak(false) }
   }
 
-  useEffect(()=>{
-    if(userid){
-      fetchUserinfo()
-      fetchUserStreak()
-    }
-  },[userid])
+  useEffect(() => {
+    if (userid) { fetchUserinfo(); fetchUserStreak() }
+  }, [userid])
+
+  const getNotifyTime = (t: UserInfoRow) => {
+    if (t.taskname === 'Drink Water') return 'Interval'
+    if (t.taskname === 'Mid Night Report') return 'Midnight'
+    return t.fixed_notify_time
+  }
+  const getCadence = (t: UserInfoRow) =>
+    t.taskname === 'Mid Night Report' ? '1 Day' : t.notify_after || '—'
+  const getStreakDesc = (name: string) => {
+    if (name === 'Drink Water') return 'Times water intake was logged today'
+    if (name === 'Daily Exercise') return 'Exercise sessions completed today'
+    if (name === 'Study Session') return 'Study sessions logged today'
+    return 'Total logged entries today'
+  }
 
   return (
-    <div className='min-h-screen w-full flex flex-col items-center px-4 py-8 sm:px-8 lg:px-0'>
-      <section className='w-full max-w-6xl mb-8'>
-        <TelegramStatus email={session?.user?.email} />
-      </section>
-      <section className='w-full max-w-6xl relative border-[4px] border-black rounded-[32px] bg-[#fefefe] px-6 py-10 sm:px-10 shadow-[12px_12px_0_#0b0b0d] overflow-hidden'>
-        <div className='pointer-events-none absolute -top-16 -right-10 h-48 w-48 rotate-[12deg] border-[4px] border-black bg-[#7df9ff] opacity-50'></div>
-        <div className='pointer-events-none absolute -bottom-12 -left-6 h-40 w-40 rotate-6 border-[4px] border-black bg-[#ffff00] opacity-60'></div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Bebas+Neue&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
 
-        <div className='relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
-          <div>
-            <div className='flex items-center justify-between w-full'>
-              <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
-                Subscriptions Live
-              </p>
-              <div className='relative h-10 w-auto group'>
-                <button disabled={loadinginfo} onClick={fetchUserinfo} className='relative z-10 flex items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2FFF2F] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036] h-full'>
-                  {loadinginfo ? (
-                    <svg
-                      className="h-4 w-4 animate-spin text-black"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      />
-                    </svg>
-                  ) : (
-                    <>
-                      <p className="text-xs font-bold">Refresh</p>
-                      <RefreshCcw size={16} />
-                    </>
-                  )}
-                </button>
-                <span className='absolute inset-0 z-0 bg-[#7DF9FF] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
-                <span className='absolute inset-0 z-0 bg-[#FF9F66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
-              </div>
-            </div>
+        :root {
+          --ink:   #1a1a1a;
+          --cream: #f2ece0;
+          --terra: #c8624a;
+          --steel: #4a7c9e;
+          --straw: #d4a843;
+        }
 
-            <h1 className='mt-4 text-3xl font-black uppercase leading-tight text-[#0b0b0d] sm:text-[44px]'>Notification Subscription Hub</h1>
-            <p className='mt-3 max-w-lg text-base font-medium text-[#333]'>Dashboard to view your active notification subscriptions.</p>
-          </div>
+        body {
+          margin: 0;
+          background-color: var(--cream);
+          background-image: radial-gradient(#1a1a1a0f 1px, transparent 1px);
+          background-size: 24px 24px;
+          font-family: 'DM Sans', sans-serif;
+          color: var(--ink);
+        }
 
-          <div className='grid w-full gap-3 sm:w-auto sm:grid-col-1 md:grid-cols-2'>
-            <div className='border-[4px] border-black bg-[#7df9ff] px-5 py-4 text-left shadow-[6px_6px_0_#0b0b0d]'>
-              <p className='text-xs font-semibold uppercase tracking-widest'>Active Flows</p>
-              <p className='text-4xl font-black'>{totalActiveTasks.toString().padStart(2,'0')}</p>
-            </div>
-            <div className='border-[4px] border-black bg-[#ff9f66] px-5 py-4 text-left shadow-[6px_6px_0_#0b0b0d]'>
-              <p className='text-xs font-semibold uppercase tracking-widest'>Timezones Synced</p>
-              <p className='text-4xl font-black'>{uniqueTimezones.toString().padStart(2,'0')}</p>
-            </div>
-            <div className='border-[4px] border-black bg-[#f7f7f7] px-5 py-4 text-left shadow-[6px_6px_0_#0b0b0d] sm:col-span-2'>
-              <p className='text-xs font-semibold uppercase tracking-widest'>Interval Based</p>
-              <p className='text-3xl font-black'>{intervalDriven.toString().padStart(2,'0')}</p>
-            </div>
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .marquee-inner { animation: marquee 32s linear infinite; display: flex; width: max-content; }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .blink { animation: blink 1.2s step-end infinite; }
+
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(16px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .fade-up  { animation: fadeUp 0.45s cubic-bezier(.22,.68,0,1.2) both; }
+        .delay-1  { animation-delay: 0.05s; }
+        .delay-2  { animation-delay: 0.15s; }
+        .delay-3  { animation-delay: 0.25s; }
+        .delay-4  { animation-delay: 0.35s; }
+
+        .card-grid > *:nth-child(1) { animation-delay: 0.04s; }
+        .card-grid > *:nth-child(2) { animation-delay: 0.10s; }
+        .card-grid > *:nth-child(3) { animation-delay: 0.16s; }
+        .card-grid > *:nth-child(4) { animation-delay: 0.22s; }
+        .card-grid > *:nth-child(5) { animation-delay: 0.28s; }
+        .card-grid > *:nth-child(6) { animation-delay: 0.34s; }
+
+        .card-lift { transition: transform 180ms ease, box-shadow 180ms ease; }
+        .card-lift:hover  { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 var(--ink) !important; }
+        .card-lift:active { transform: translate(1px,1px);   box-shadow: 2px 2px 0 var(--ink) !important; }
+      `}</style>
+
+      <div className="min-h-screen w-full">
+
+        {/* ── Ticker ──────────────────────────────────────────────────────── */}
+        <div className="w-full overflow-hidden border-b-[3px] border-[#1a1a1a] bg-[#1a1a1a] py-2.5">
+          <div className="marquee-inner">
+            {[...Array(8)].map((_, i) => (
+              <span key={i} className="flex items-center gap-8 px-8 text-[10px] font-black uppercase tracking-[0.28em] whitespace-nowrap text-[#f2ece0]/70">
+                <span className="blink" style={{ color: '#c8624a' }}>●</span>
+                <span>Notification Hub</span>
+                <span className="opacity-30">·</span>
+                <span>Telegram Active</span>
+                <span className="opacity-30">·</span>
+                <span>Streak Monitor Live</span>
+                <span className="opacity-30">·</span>
+                <span style={{ color: '#d4a843' }}>
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
+                <span className="opacity-30">·</span>
+              </span>
+            ))}
           </div>
         </div>
 
-        <div className='relative mt-10 grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3'>
-          {userinfo.map((data,index) => (
-            <div key={data.taskname.concat(index.toString())} className='bg-black rounded-2xl '>
-            <article
-              className='group border-[4px] h-full w-full border-black  rounded-2xl p-4 -translate-x-2 -translate-y-2 transition duration-200 hover:-translate-y-3 hover:-translate-x-3 hover:bg-[#ffe6c7] bg-[#fff9ef]'
-            >
-              <header className='flex items-start justify-between gap-4'>
-                <div>
-                  <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[#555]'>Task</p>
-                  <h3 className='text-2xl font-black text-[#0b0b0d]'>{data.taskname}</h3>
-                </div>
-                <span className='border-[3px] border-black bg-white px-3 py-1 text-xs font-bold uppercase tracking-widest shadow-[4px_4px_0_#0b0b0d]'>#{data.taskname.slice(0,4).toUpperCase()}</span>
-              </header>
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-10 space-y-12">
 
-              <p className='mt-4 text-sm font-medium leading-relaxed text-[#333]'>{data.taskdescription}</p>
+          {/* Telegram */}
+          <div className="fade-up delay-1">
+            <TelegramStatus email={session?.user?.email} />
+          </div>
 
-              <div className='mt-6 space-y-3'>
-                <div className='flex flex-col gap-2 border-[3px] border-black bg-[#ffff00] px-3 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] sm:flex-row sm:items-center sm:justify-between'>
-                  <span className='uppercase tracking-[0.2em] text-[#0b0b0d]'>Notify At</span>
-                  <div className='flex flex-wrap items-center gap-2'>
-                    <span className='border-[3px] border-black bg-white px-3 py-1 shadow-[3px_3px_0_#0b0b0d]'>
-                      {data.taskname==='Drink Water'?'Interval':data.taskname==='Mid Night Report'?'Mid Night':data.fixed_notify_time}
-                    </span>
-                    <span className='border-[3px] border-black bg-white px-3 py-1 shadow-[3px_3px_0_#0b0b0d]'>{data.timezone}</span>
-                  </div>
-                </div>
+          {/* 
+              SUBSCRIPTIONS — Terracotta identity
+           */}
+          <section className="fade-up delay-2 border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[10px_10px_0_#1a1a1a] overflow-hidden">
 
-                <div className='flex flex-col gap-2 border-[3px] border-black bg-[#7df9ff] px-3 py-2 text-sm font-semibold text-[#0b0b0d] shadow-[4px_4px_0_#0b0b0d] sm:flex-row sm:items-center sm:justify-between'>
-                  <span className='uppercase tracking-[0.2em]'>Cadence</span>
-                  <span className='border-[3px] border-black bg-white px-3 py-1 shadow-[3px_3px_0_#0b0b0d]'>
-                    {data.taskname==='Mid Night Report'?'1 Day':data.notify_after || '—'}
-                  </span>
-                </div>
-              </div>
-            </article>
-            </div>
-          ))}
+            {/* Terracotta stripe */}
+            <div className="h-[7px] border-b-[3px] border-[#1a1a1a]" style={{ backgroundColor: '#c8624a' }} />
 
-          {userinfo.length === 0 && (
-            <div className='col-span-full border-[4px] border-dashed border-black bg-white px-5 py-12 text-center shadow-[8px_8px_0_#0b0b0d]'>
-              <p className='text-sm font-semibold uppercase tracking-[0.3em] text-[#666]'>No Subscriptions Yet</p>
-              <p className='mt-2 text-xl font-black text-[#0b0b0d]'>Wire up a notification to watch it land here.</p>
-            </div>
-          )}
-        </div>
-      </section>
+            <div className="px-6 sm:px-10 py-8 space-y-8">
 
-      <section className='mt-8 w-full relative max-w-6xl overflow-hidden border-[4px] border-black bg-[#fefefe] px-6 py-8 text-center shadow-[10px_10px_0_#0b0b0d]'>
-        <div className='pointer-events-none z-0   border-5 opacity-70 border-[#272928] -top-20 -right-20 sm:-top-10 sm:-right-15 md:-top-5 md:-right-10 transition-all bg-[#ff9f66] rounded-full h-48 w-48 sm:h-64 sm:w-64 md:h-80 md:w-80 rotate-45 absolute'></div>
-         <div className='pointer-events-none z-0  border-5 opacity-70 border-[#272928] -bottom-10 -left-20 sm:-bottom-10 sm:-right-15 md:-bottom-5 md:-left-10 bg-[#2fff2f] rounded-full h-48 w-48 sm:h-64 sm:w-64 md:h-80 md:w-80 rotate-45 absolute'></div>
-          <div className='  flex flex-col sm:flex-row sm:justify-between items-start relative mb-6'>
-            <div className='w-full'>
-              <div className='flex flex-col items-start w-full gap-3'>
-                <p className='inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]'>
-                  Daily Streak Monitor
-                </p>
-                <div className='relative h-10 w-auto group'>
-                  <button
-                    type='button'
-                    disabled={loadingstreak}
-                    onClick={fetchUserStreak}
-                    className='relative z-10  flex h-full items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036]'
+              {/* Header */}
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <span
+                    className="inline-flex items-center gap-2 border-[3px] border-[#1a1a1a] px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] shadow-[4px_4px_0_#1a1a1a] text-white"
+                    style={{ backgroundColor: '#c8624a' }}
                   >
-                    {loadingstreak ? (
-                      <svg
-                        className='h-4 w-4 animate-spin text-black'
-                        viewBox='0 0 24 24'
-                        fill='none'
-                        xmlns='http://www.w3.org/2000/svg'
-                      >
-                        <circle
-                          className='opacity-25'
-                          cx='12'
-                          cy='12'
-                          r='10'
-                          stroke='currentColor'
-                          strokeWidth='4'
-                        />
-                        <path
-                          className='opacity-75'
-                          fill='currentColor'
-                          d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                        />
-                      </svg>
-                    ) : (
-                      <>
-                        <p className='text-xs font-bold'>Refresh</p>
-                        <RefreshCcw size={16} />
-                      </>
-                    )}
-                  </button>
-                  <span className='absolute inset-0 z-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3'></span>
-                  <span className='absolute inset-0 z-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5'></span>
-                </div>
-              </div>
-            <h2 className='mt-4 text-3xl sm:text-[44px] leading-tight font-black uppercase text-left text-[#0b0b0d]'>Your Daily Streak</h2>
-            <p className='mt-1 mb-5 text-left  text-base font-medium text-[#133c1b]'>These are the inputs from your side</p>
-          </div>
-          <div className='mt-6 grid grid-cols-1 w-full sm:w-auto sm:grid-cols-2  gap-3'>
-            <div className=' bg-black '>
-                <span className='bg-[#2fff2f] h-full block -translate-x-1 px-4 py-4 text-left border-[4px] -translate-y-1'>
-                  <p className='text-xs font-semibold uppercase tracking-widest'>Currently Watching</p>
-                <p className='text-4xl font-black'>{currentlyWatching.toString().padStart(2,'0')}</p>
+                    <span className="blink">●</span> Subscriptions Live
                   </span>
-                  </div>
-             <div className=' bg-black '>
-                <span className='bg-[#7df9ff] h-full block -translate-x-1 px-5 py-4 text-left border-[4px] -translate-y-1'>
-                  <p className='text-xs font-semibold uppercase tracking-widest'>User Activity Count</p>
-                  
-                  <p className='text-4xl font-black'>{userActivityCount.toString().padStart(2,'0')}</p>
-                  </span>
-                  </div>
-             <div className=' bg-black sm:col-span-2 '>
-                <span className='bg-[#ffff00] block -translate-x-1 px-5 py-4 text-left border-[4px] -translate-y-1'>
-                  <p className='text-xs font-semibold uppercase tracking-widest'>Date Today</p>
-                  <p className='text-4xl font-black'>{new Date().toDateString()}</p>
-                  </span>
-                  </div>
-          </div>
-
-          
-          </div>
-          {/* problem */}
-          <div className='relative z-10 '>
-          {userStreak.length>0 ?(<div className='mt-10 grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3'>
-            {userStreak && userStreak.map((data)=>(
-              <div key={data.taskname} className='bg-black rounded-2xl'>
-                <div className='flex h-full flex-col gap-4 rounded-2xl border-[4px] border-black  bg-[#fff9ef] px-4 py-4 text-left -translate-x-2 -translate-y-2 shadow-[6px_6px_0_#0b0b0d] transition duration-200 hover:-translate-x-3 hover:-translate-y-3 hover:bg-[#ffe6c7]'>
-                  <h1 className='text-2xl font-black text-[#0b0b0d]'>{data.taskname} Logs</h1>
-                  <div className='flex flex-col gap-2 border-[3px] border-black bg-[#ffff00] px-3 py-2 text-sm font-semibold uppercase text-[#0b0b0d] shadow-[4px_4px_0_#0b0b0d] sm:flex-row sm:items-center sm:justify-between'>
-                    <span className='tracking-[0.2em]'>Count</span>
-                    <span className='border-[3px] border-black bg-white px-3 py-1 text-2xl font-black shadow-[3px_3px_0_#0b0b0d]'>
-                      {data.count.toString().padStart(2,'0')}
-                    </span>
-                  </div>
-                  <p className='text-sm font-medium text-[#333]'>
-                    {data.taskname==="Drink Water"?"Number of times you have logged your water intake":data.taskname==='Daily Exercise'?"Logged daily exercise sessions":data.taskname==="Study Session"?"Total daily study sessions":""}
+                  <h1
+                    className="text-[48px] sm:text-[64px] font-black uppercase leading-[0.88] text-[#1a1a1a]"
+                    style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.01em' }}
+                  >
+                    Notification<br />Hub
+                  </h1>
+                  <p className="text-sm font-medium text-[#1a1a1a]/50 max-w-sm leading-relaxed">
+                    All your active notification flows in one place, synced across timezones.
                   </p>
                 </div>
+                <div className="shrink-0 pt-1">
+                  <RefreshBtn loading={loadinginfo} onClick={fetchUserinfo} />
+                </div>
               </div>
-            ))}
-          </div>):
-                 <div className='col-span-full border-[4px] mt-5 border-dashed border-black bg-white px-5 py-12 text-center shadow-[8px_8px_0_#0b0b0d]'>
-              <p className='text-sm font-semibold uppercase tracking-[0.3em] text-[#666]'>No Input from the user</p>
-              <p className='mt-2 text-xl font-black text-[#0b0b0d]'>Log in your inputs in the telegram bot to watch it land here</p>
+
+              {/* Stats — terracotta on first, neutral others */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Active Flows',   value: totalActiveTasks, bg: '#c8624a', text: 'white', icon: Zap   },
+                  { label: 'Timezones',      value: uniqueTimezones,  bg: '#ffffff', text: '#1a1a1a', icon: Globe },
+                  { label: 'Interval Based', value: intervalDriven,   bg: '#f2ece0', text: '#1a1a1a', icon: Timer },
+                ].map(({ label, value, bg, text, icon: Icon }) => (
+                  <div key={label} className="border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3" style={{ backgroundColor: bg, color: text }}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60">{label}</span>
+                      <Icon size={14} className="opacity-30" />
+                    </div>
+                    <p className="text-[42px] font-black leading-none tabular-nums">{String(value).padStart(2, '0')}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t-[2px] border-dashed border-[#1a1a1a]/15" />
+
+              {userinfo.length === 0 ? (
+                <EmptyState title="No Subscriptions Yet" body="Wire up a notification to watch it land here." />
+              ) : (
+                <div className="card-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {userinfo.map((data, i) => (
+                    <div
+                      key={data.taskname + i}
+                      className="fade-up card-lift border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[5px_5px_0_#1a1a1a] flex flex-col overflow-hidden"
+                    >
+                      {/* Card top — terracotta tint, light enough for black text */}
+                      <div
+                        className="border-b-[3px] border-[#1a1a1a] px-4 py-2.5 flex items-center justify-between"
+                        style={{ backgroundColor: '#f0d5cf' }}
+                      >
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/50">Task</span>
+                        <Tag>#{data.taskname.slice(0, 4).toUpperCase()}</Tag>
+                      </div>
+
+                      <div className="p-5 flex flex-col gap-4 flex-1">
+                        <h3
+                          className="text-[26px] font-black text-[#1a1a1a] leading-tight"
+                          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}
+                        >
+                          {data.taskname}
+                        </h3>
+                        <p className="text-xs font-medium leading-relaxed text-[#1a1a1a]/50 pl-3 border-l-[3px] border-[#1a1a1a]/12 flex-1">
+                          {data.taskdescription}
+                        </p>
+                        <div className="space-y-2 mt-auto">
+                          {/* Notify row — straw yellow */}
+                          <div
+                            className="flex flex-wrap items-center justify-between gap-2 border-[2.5px] border-[#1a1a1a] px-3 py-2.5 shadow-[3px_3px_0_#1a1a1a]"
+                            style={{ backgroundColor: '#f0d08a' }}
+                          >
+                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#1a1a1a]">Notify At</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              <Tag>{getNotifyTime(data)}</Tag>
+                              <Tag>{data.timezone}</Tag>
+                            </div>
+                          </div>
+                          {/* Cadence row — neutral */}
+                          <div className="flex items-center justify-between gap-2 border-[2.5px] border-[#1a1a1a] bg-white px-3 py-2.5 shadow-[3px_3px_0_#1a1a1a]">
+                            <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#1a1a1a]/50">Cadence</span>
+                            <Tag>{getCadence(data)}</Tag>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            }
-          </div>
-      </section>
+          </section>
 
+          {/* 
+              DAILY STREAK — Steel blue identity
+           */}
+          <section className="fade-up delay-3 border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[10px_10px_0_#1a1a1a] overflow-hidden">
 
-      <section className='mt-8 w-full relative max-w-6xl  border-[4px] border-black bg-[#fefefe] px-6 py-8 text-center shadow-[10px_10px_0_#0b0b0d]'>
-          <Update userid={userid}/>
-      </section>
-    </div>
+            {/* Steel stripe */}
+            <div className="h-[7px] border-b-[3px] border-[#1a1a1a]" style={{ backgroundColor: '#4a7c9e' }} />
+
+            <div className="px-6 sm:px-10 py-8 space-y-8">
+
+              {/* Header */}
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <span
+                    className="inline-flex items-center gap-2 border-[3px] border-[#1a1a1a] px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] shadow-[4px_4px_0_#1a1a1a] text-white"
+                    style={{ backgroundColor: '#4a7c9e' }}
+                  >
+                    <span className="blink">●</span> Daily Streak Monitor
+                  </span>
+                  <h2
+                    className="text-[48px] sm:text-[64px] font-black uppercase leading-[0.88] text-[#1a1a1a]"
+                    style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.01em' }}
+                  >
+                    Your Daily<br />Streak
+                  </h2>
+                  <p className="text-sm font-medium text-[#1a1a1a]/50 max-w-sm leading-relaxed">
+                    Inputs logged via Telegram. Stay consistent — keep the streak alive.
+                  </p>
+                </div>
+                <div className="shrink-0 pt-1">
+                  <RefreshBtn loading={loadingstreak} onClick={fetchUserStreak} />
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Steel highlight */}
+                <div className="border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3 text-white" style={{ backgroundColor: '#4a7c9e' }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-70">Watching</span>
+                    <Eye size={14} className="opacity-40" />
+                  </div>
+                  <p className="text-[42px] font-black leading-none tabular-nums">{String(currentlyWatching).padStart(2, '0')}</p>
+                </div>
+                {/* Neutral */}
+                <div className="border-[3px] border-[#1a1a1a] bg-white shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-50">Total Activity</span>
+                    <TrendingUp size={14} className="opacity-25" />
+                  </div>
+                  <p className="text-[42px] font-black leading-none tabular-nums">{String(userActivityCount).padStart(2, '0')}</p>
+                </div>
+                {/* Straw date */}
+                <div className="border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3" style={{ backgroundColor: '#f0d08a' }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-60 text-[#1a1a1a]">Date Today</span>
+                    <Calendar size={14} className="opacity-30" />
+                  </div>
+                  <p className="text-lg font-black leading-snug text-[#1a1a1a]">{new Date().toDateString()}</p>
+                </div>
+              </div>
+
+              <div className="border-t-[2px] border-dashed border-[#1a1a1a]/15" />
+
+              {userStreak.length === 0 ? (
+                <EmptyState title="No Input Yet" body="Log inputs in the Telegram bot to watch them appear here." />
+              ) : (
+                <div className="card-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  {userStreak.map((data, i) => (
+                    <div
+                      key={data.taskname}
+                      className="fade-up card-lift border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[5px_5px_0_#1a1a1a] overflow-hidden"
+                    >
+                      {/* Steel tint header */}
+                      <div
+                        className="border-b-[3px] border-[#1a1a1a] px-4 py-2.5"
+                        style={{ backgroundColor: '#c8dcea' }}
+                      >
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/50">Streak Log</span>
+                      </div>
+                      <div className="p-5 flex flex-col gap-4">
+                        <h3
+                          className="text-[26px] font-black text-[#1a1a1a] leading-tight"
+                          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}
+                        >
+                          {data.taskname}
+                        </h3>
+                        {/* Count row — straw accent */}
+                        <div
+                          className="flex items-center justify-between border-[2.5px] border-[#1a1a1a] px-3 py-3 shadow-[3px_3px_0_#1a1a1a]"
+                          style={{ backgroundColor: '#f0d08a' }}
+                        >
+                          <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#1a1a1a]">Count</span>
+                          <span className="border-[2.5px] border-[#1a1a1a] bg-white px-4 py-1 text-3xl font-black shadow-[3px_3px_0_#1a1a1a] tabular-nums text-[#1a1a1a]">
+                            {String(data.count).padStart(2, '0')}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-[#1a1a1a]/50 pl-3 border-l-[2.5px] border-[#1a1a1a]/12">
+                          {getStreakDesc(data.taskname)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 
+              UPDATE SETTINGS
+           */}
+          <section className="fade-up delay-4 border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[10px_10px_0_#1a1a1a] overflow-hidden">
+            <div className="h-[7px] border-b-[3px] border-[#1a1a1a]" style={{ backgroundColor: '#d4a843' }} />
+            <div className="px-6 sm:px-10 py-8">
+              <div className="mb-8 space-y-3">
+                <span
+                  className="inline-flex items-center gap-2 border-[3px] border-[#1a1a1a] px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em] shadow-[4px_4px_0_#1a1a1a] text-[#1a1a1a]"
+                  style={{ backgroundColor: '#f0d08a' }}
+                >
+                  <span className="blink">●</span> Manage
+                </span>
+                <h2
+                  className="text-[48px] sm:text-[64px] font-black uppercase leading-[0.88] text-[#1a1a1a]"
+                  style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.01em' }}
+                >
+                  Update<br />Settings
+                </h2>
+              </div>
+              <Update userid={userid} />
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer className="text-center pb-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.45em] text-[#1a1a1a]/20">
+              Notification Hub · {new Date().getFullYear()} · Brutalist by design
+            </p>
+          </footer>
+
+        </div>
+      </div>
+    </>
   )
 }
 

@@ -65,13 +65,17 @@ Multi-channel notification system that helps users stay on top of hydration, wor
 
 ### Backend Environment
 Create `backend/.env` with at least:
-- `POSTGRES_CONNECTION_STRING`
-- `BETTER_AUTH_URL`
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`
-- `TELEGRAM_TOKEN`
-- `RESEND_API_KEY`
-- `API_KEY_QUOTES` (FavQs API token)
+POSTGRES_CONNECTION_STRING=
+BETTER_AUTH_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+REDIS_HOST=
+REDIS_PORT=
+REDIS_USERNAME=
+REDIS_PASSWORD=
+TELEGRAM_TOKEN=
+RESEND_API_KEY=
+API_KEY_QUOTES=
 
 Bootstrap steps:
 1. `cd backend && npm install`
@@ -90,7 +94,7 @@ Install + run:
 
 ## Development Notes
 - Queues (`schedular`, `telegram`, `gmail`, `qotd`) require Redis connectivity; ensure the Redis URI matches your `.env` before relying on scheduled jobs.
-- The React dashboard currently seeds `userid` with `b81b63da-0487-446d-9ea2-b62d852ea3bd`; wire it up to Better Auth session data when integrating real accounts.
+
 - `src/components/index.css` registers custom Mabry Pro fonts; keep assets under `src/assets/fonts` in sync if you tweak typography.
 
 ## Visual Preview

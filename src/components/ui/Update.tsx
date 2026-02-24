@@ -5,6 +5,21 @@ import { AnimatePresence, motion } from 'framer-motion'
 import CustomNotification from '../CustomNotification'
 import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form"
 
+/**
+ * PALETTE — matches App.tsx exactly:
+ *  Ink        #1a1a1a
+ *  Cream      #f2ece0  (page base)
+ *  Card       #faf6ef  (card surface)
+ *  Terracotta #c8624a  → Type 1 / primary accent
+ *  Steel      #4a7c9e  → Type 2 accent
+ *  Straw      #f0d08a  → Type 3 / highlight moments
+ *
+ *  Tints (for card headers, safe on black text):
+ *    Terra tint  #f0d5cf
+ *    Steel tint  #c8dcea
+ *    Straw tint  #f9edca
+ */
+
 type NotificationType = "first" | "second" | "third"
 
 type UserTask = {
@@ -20,37 +35,30 @@ type UserTask = {
   taskpriority: string
 }
 
-type UpdateProps = {
-  userid: string
-}
+type UpdateProps = { userid: string }
 
 const COMMON_INTERVALS = [
-  { label: '5 min', value: '5 minutes' },
+  { label: '5 min',  value: '5 minutes'  },
   { label: '15 min', value: '15 minutes' },
   { label: '30 min', value: '30 minutes' },
-  { label: '1 hr', value: '1 hour' },
-  { label: '2 hr', value: '2 hours' },
-  { label: '6 hr', value: '6 hours' },
-  { label: '12 hr', value: '12 hours' },
-  { label: '1 day', value: '1 day' },
+  { label: '1 hr',   value: '1 hour'     },
+  { label: '2 hr',   value: '2 hours'    },
+  { label: '6 hr',   value: '6 hours'    },
+  { label: '12 hr',  value: '12 hours'   },
+  { label: '1 day',  value: '1 day'      },
 ]
 
-type FormValues = {
-  tasks: UserTask[]
-}
+type FormValues = { tasks: UserTask[] }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 const validateNotifyAfter = (value: string): { isValid: boolean; error?: string } => {
   if (!value?.trim()) return { isValid: false, error: 'Notify After is required' }
   const pattern = /^\d+\s+(minute|hour|day)s?$/i
-  if (!pattern.test(value.trim())) {
-    return { isValid: false, error: 'Format: "5 minutes", "1 hour", "2 days"' }
-  }
+  if (!pattern.test(value.trim())) return { isValid: false, error: 'Format: "5 minutes", "1 hour", "2 days"' }
   return { isValid: true }
 }
 
-// Normalize isactive to boolean — handles true/false booleans, "true"/"false" strings, 1/0
 const isActiveTrue = (val: unknown): boolean => {
   if (typeof val === 'boolean') return val
   if (typeof val === 'number') return val === 1
@@ -58,13 +66,30 @@ const isActiveTrue = (val: unknown): boolean => {
   return false
 }
 
+// Per-type visual identity
 const TYPE_META = {
-  first:  { label: 'TYPE 1 · INTERVAL',   color: 'bg-[#c1ff72]', accent: '#c1ff72' },
-  second: { label: 'TYPE 2 · FIXED TIME', color: 'bg-[#7df9ff]', accent: '#7df9ff' },
-  third:  { label: 'TYPE 3 · SCHEDULED',  color: 'bg-[#ff9f66]', accent: '#ff9f66' },
+  first:  { label: 'TYPE 1 · INTERVAL',   stripe: '#c8624a', tint: '#f0d5cf', pill: '#c8624a', pillText: '#fff', chipSel: '#c8624a', chipSelText: '#fff', chipBg: '#f0d5cf' },
+  second: { label: 'TYPE 2 · FIXED TIME', stripe: '#4a7c9e', tint: '#c8dcea', pill: '#4a7c9e', pillText: '#fff', chipSel: '#4a7c9e', chipSelText: '#fff', chipBg: '#c8dcea' },
+  third:  { label: 'TYPE 3 · SCHEDULED',  stripe: '#d4a843', tint: '#f9edca', pill: '#f0d08a', pillText: '#1a1a1a', chipSel: '#d4a843', chipSelText: '#1a1a1a', chipBg: '#f9edca' },
 }
 
-// ─── Single Task Card ────────────────────────────────────────────────────────
+//  Spinner ─
+const Spinner = ({ size = 14 }: { size?: number }) => (
+  <svg style={{ width: size, height: size }} className="animate-spin" viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+  </svg>
+)
+
+//  Field Label ─
+const FieldLabel = ({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) => (
+  <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#1a1a1a]/60">
+    <Icon size={11} />
+    {children}
+  </label>
+)
+
+//  Task Card ─
 function TaskCard({ index, field, control, register, userid, showStatusCard }: {
   index: number
   field: UserTask & { id: string }
@@ -79,45 +104,35 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const notifType = field.notification_type
   const meta = TYPE_META[notifType]
-
   const taskValues = useWatch({ control, name: `tasks.${index}` }) as UserTask
-
 
   async function updateUserTask(data: UserTask) {
     if (!userid) return null
-    try {
-      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response = await fetch(`${base}/api/updateput/${userid}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          fixed_notify_time: data.fixed_notify_time,
-          fixed_notify_date: data.fixed_notify_date,
-          isactive: data.isactive,
-          taskname: data.taskname,
-          timezone: data.timezone,
-          notify_after: data.notify_after,
-          taskid: data.taskid,
-          notification_type: data.notification_type,
-        }),
-      })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message)
-      return result
-    } catch (error) {
-      console.error(error)
-      throw error
-    }
+    const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+    const response = await fetch(`${base}/api/updateput/${userid}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        fixed_notify_time: data.fixed_notify_time,
+        fixed_notify_date: data.fixed_notify_date,
+        isactive: data.isactive,
+        taskname: data.taskname,
+        timezone: data.timezone,
+        notify_after: data.notify_after,
+        taskid: data.taskid,
+        notification_type: data.notification_type,
+      }),
+    })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.message)
+    return result
   }
 
   async function onConfirm() {
     if (notifType === 'first') {
-      const validation = validateNotifyAfter(taskValues.notify_after ?? '')
-      if (!validation.isValid) {
-        showStatusCard(validation.error ?? 'Invalid interval', 'error')
-        return
-      }
+      const v = validateNotifyAfter(taskValues.notify_after ?? '')
+      if (!v.isValid) { showStatusCard(v.error ?? 'Invalid interval', 'error'); return }
     }
     setIsLoading(true)
     try {
@@ -133,22 +148,25 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 220, damping: 22, delay: index * 0.04 }}
-      className="relative border-[4px] border-black bg-[#fefefe] shadow-[6px_6px_0_#0b0b0d] overflow-hidden"
+      className="border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[5px_5px_0_#1a1a1a] overflow-hidden"
+      style={{ transition: 'box-shadow 180ms ease, transform 180ms ease' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translate(-2px,-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '8px 8px 0 #1a1a1a' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '5px 5px 0 #1a1a1a' }}
     >
-      {/* Accent stripe */}
-      <div className={`h-[5px] w-full ${meta.color} border-b-[3px] border-black`} />
+      {/* Colored stripe */}
+      <div className="h-[6px] border-b-[3px] border-[#1a1a1a]" style={{ backgroundColor: meta.stripe }} />
 
-      {/* ── Collapsed header (always visible) ── */}
-      <div className="flex items-center gap-3 px-5 py-4">
-        {/* Task name */}
-        <h3 className="flex-1 min-w-0 text-sm sm:text-[15px] font-black uppercase text-[#0b0b0d] truncate leading-tight">
+      {/*  Collapsed header  */}
+      <div className="flex items-center gap-3 px-4 py-3.5">
+        <h3 className="flex-1 min-w-0 text-[15px] font-black uppercase text-[#1a1a1a] truncate leading-tight"
+          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em', fontSize: '18px' }}>
           {field.taskname}
         </h3>
 
-        {/* Active / Paused toggle with warning */}
+        {/* Active toggle */}
         <Controller
           control={control}
           name={`tasks.${index}.isactive`}
@@ -161,25 +179,23 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
               if (timeoutRef.current) clearTimeout(timeoutRef.current)
               timeoutRef.current = setTimeout(() => setShowConfirmMsg(false), 4000)
             }
-            useEffect(() => {
-              return () => {
-                if (timeoutRef.current) clearTimeout(timeoutRef.current)
-              }
-            }, [])
+            useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }, [])
             return (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-end gap-1">
                 <button
                   type="button"
                   onClick={handleClick}
-                  className={`shrink-0 border-[2.5px] border-black px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[3px_3px_0_#0b0b0d] transition-colors ${
-                    active ? 'bg-[#2fff2f] text-[#0b0b0d]' : 'bg-[#e0e0e0] text-[#555]'
-                  }`}
+                  className="shrink-0 border-[2.5px] border-[#1a1a1a] px-3 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#1a1a1a] transition-all"
+                  style={{
+                    backgroundColor: active ? '#c8624a' : '#e8e2d8',
+                    color: active ? '#fff' : '#1a1a1a',
+                  }}
                 >
                   {active ? 'Active' : 'Paused'}
                 </button>
                 {showConfirmMsg && (
-                  <span className="mt-1  text-xs text-red-600 font-semibold text-center max-w-[160px]">
-                    Changes apply only after you expand the card and press Confirm.
+                  <span className="text-[9px] font-bold text-[#c8624a] text-right max-w-[140px] leading-tight">
+                    Expand &amp; confirm to save changes
                   </span>
                 )}
               </div>
@@ -187,21 +203,21 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
           }}
         />
 
-        {/* Expand toggle */}
+        {/* Expand button */}
         <button
           type="button"
-          onClick={() => setExpanded(prev => !prev)}
-          className={`shrink-0 border-[2.5px] border-black p-1.5 shadow-[3px_3px_0_#0b0b0d] transition-all ${meta.color} hover:brightness-95 flex items-center gap-2`}
-          aria-label={expanded ? 'Collapse' : 'Expand'}
+          onClick={() => setExpanded(p => !p)}
+          className="shrink-0 flex items-center gap-1.5 border-[2.5px] border-[#1a1a1a] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#1a1a1a] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          style={{ backgroundColor: meta.tint, color: '#1a1a1a' }}
         >
-          <span className="text-xs font-bold text-gray-700">Edit</span>
+          <span>Edit</span>
           <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-            <ChevronDown size={14} strokeWidth={3} />
+            <ChevronDown size={13} strokeWidth={3} />
           </motion.div>
         </button>
       </div>
 
-      {/* ── Expanded body ── */}
+      {/*  Expanded body  */}
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
@@ -212,14 +228,12 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="border-t-[3px] border-black px-4 py-4 flex flex-col gap-4">
+            <div className="border-t-[3px] border-[#1a1a1a] px-4 py-5 flex flex-col gap-5 bg-white/40">
 
               {/* Timezone */}
-              <div className="flex flex-col gap-1.5">
-                <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
-                  <Globe size={11} /> Timezone
-                </label>
-                <div className="border-[3px] border-black shadow-[4px_4px_0_#0b0b0d]">
+              <div className="flex flex-col gap-2">
+                <FieldLabel icon={Globe}>Timezone</FieldLabel>
+                <div className="border-[3px] border-[#1a1a1a] shadow-[3px_3px_0_#1a1a1a]">
                   <Controller
                     control={control}
                     name={`tasks.${index}.timezone`}
@@ -230,15 +244,18 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                         styles={{
                           control: (base) => ({
                             ...base, border: 'none', boxShadow: 'none', borderRadius: 0,
-                            fontWeight: 700, fontSize: '13px', background: '#fefefe',
+                            fontWeight: 700, fontSize: '13px', background: '#faf6ef',
                           }),
                           option: (base, state) => ({
                             ...base, fontWeight: 600, fontSize: '13px',
-                            background: state.isSelected ? '#0b0b0d' : state.isFocused ? meta.accent : '#fefefe',
-                            color: state.isSelected ? '#fefefe' : '#0b0b0d',
+                            background: state.isSelected ? '#1a1a1a' : state.isFocused ? meta.tint : '#faf6ef',
+                            color: state.isSelected ? '#fff' : '#1a1a1a',
                           }),
-                          menu: (base) => ({ ...base, border: '3px solid #0b0b0d', borderRadius: 0, boxShadow: '6px 6px 0 #0b0b0d' }),
-                          singleValue: (base) => ({ ...base, fontWeight: 700 }),
+                          menu: (base) => ({
+                            ...base, border: '3px solid #1a1a1a', borderRadius: 0,
+                            boxShadow: '5px 5px 0 #1a1a1a',
+                          }),
+                          singleValue: (base) => ({ ...base, fontWeight: 700, color: '#1a1a1a' }),
                         }}
                       />
                     )}
@@ -246,31 +263,34 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                 </div>
               </div>
 
-              {/* ── Type 1: Interval ── */}
+              {/*  Type 1: Interval  */}
               {notifType === 'first' && (
-                <div className="flex flex-col gap-2">
-                  <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
-                    <Clock size={11} /> Notify Interval
-                  </label>
+                <div className="flex flex-col gap-3">
+                  <FieldLabel icon={Clock}>Notify Interval</FieldLabel>
                   <div className="flex flex-wrap gap-1.5">
                     {COMMON_INTERVALS.map((opt) => (
                       <Controller
                         key={opt.value}
                         control={control}
                         name={`tasks.${index}.notify_after`}
-                        render={({ field: f }) => (
-                          <button
-                            type="button"
-                            onClick={() => f.onChange(opt.value)}
-                            className={`border-[2.5px] border-black px-2.5 py-1 text-[10px] font-black uppercase tracking-wide transition-all ${
-                              f.value === opt.value
-                                ? 'bg-[#0b0b0d] text-[#c1ff72] shadow-none translate-x-[2px] translate-y-[2px]'
-                                : 'bg-[#c1ff72] shadow-[3px_3px_0_#0b0b0d] hover:bg-[#a8e060]'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        )}
+                        render={({ field: f }) => {
+                          const selected = f.value === opt.value
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => f.onChange(opt.value)}
+                              className="border-[2.5px] border-[#1a1a1a] px-3 py-1.5 text-[10px] font-black uppercase tracking-wide transition-all"
+                              style={{
+                                backgroundColor: selected ? '#1a1a1a' : meta.chipBg,
+                                color: selected ? meta.tint : '#1a1a1a',
+                                boxShadow: selected ? 'none' : '3px 3px 0 #1a1a1a',
+                                transform: selected ? 'translate(2px,2px)' : '',
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          )
+                        }}
                       />
                     ))}
                   </div>
@@ -278,25 +298,24 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                     control={control}
                     name={`tasks.${index}.notify_after`}
                     render={({ field: f }) => {
-                      const validation = validateNotifyAfter(f.value ?? '')
-                      const isDirty = !!f.value
+                      const v = validateNotifyAfter(f.value ?? '')
+                      const dirty = !!f.value
                       return (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1.5">
                           <input
                             value={f.value ?? ''}
                             onChange={f.onChange}
                             placeholder='Custom: "30 minutes", "2 hours"'
-                            className={`border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold placeholder:font-normal placeholder:text-[#aaa] shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all ${
-                              isDirty && !validation.isValid ? 'border-red-500 bg-[#fff0f0]' : ''
-                            }`}
+                            className="border-[3px] border-[#1a1a1a] bg-[#faf6ef] px-3 py-2 text-sm font-bold placeholder:font-normal placeholder:text-[#1a1a1a]/30 shadow-[3px_3px_0_#1a1a1a] outline-none focus:shadow-[5px_5px_0_#1a1a1a] transition-all"
+                            style={dirty && !v.isValid ? { borderColor: '#c8624a', backgroundColor: '#fdf0ee' } : {}}
                           />
-                          {isDirty && !validation.isValid && (
-                            <p className="text-[10px] font-bold text-red-600 flex items-center gap-1">
-                              <AlertCircle size={10} /> {validation.error}
+                          {dirty && !v.isValid && (
+                            <p className="text-[10px] font-bold text-[#c8624a] flex items-center gap-1">
+                              <AlertCircle size={10} /> {v.error}
                             </p>
                           )}
-                          {isDirty && validation.isValid && (
-                            <p className="text-[10px] font-bold text-green-700 flex items-center gap-1">
+                          {dirty && v.isValid && (
+                            <p className="text-[10px] font-bold text-[#4a7c9e] flex items-center gap-1">
                               <CheckCircle size={10} /> Valid interval
                             </p>
                           )}
@@ -307,12 +326,10 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                 </div>
               )}
 
-              {/* ── Type 2: Fixed Time ── */}
+              {/*  Type 2: Fixed Time  */}
               {notifType === 'second' && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
-                    <Clock size={11} /> Fixed Notify Time
-                  </label>
+                <div className="flex flex-col gap-2">
+                  <FieldLabel icon={Clock}>Fixed Notify Time</FieldLabel>
                   <Controller
                     control={control}
                     name={`tasks.${index}.fixed_notify_time`}
@@ -324,22 +341,23 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                         value={f.value || (field.taskid === 5 ? '00:00' : field.taskid === 6 ? '06:00' : '')}
                         onChange={f.onChange}
                         onBlur={f.onBlur}
-                        className={`border-[3px] border-black px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all ${
-                          field.taskid === 5 || field.taskid === 6 ? 'bg-gray-200 cursor-not-allowed opacity-60' : 'bg-[#fefefe]'
-                        }`}
+                        className="border-[3px] border-[#1a1a1a] px-3 py-2 text-sm font-bold shadow-[3px_3px_0_#1a1a1a] outline-none focus:shadow-[5px_5px_0_#1a1a1a] transition-all"
+                        style={{
+                          backgroundColor: field.taskid === 5 || field.taskid === 6 ? '#e8e2d8' : '#faf6ef',
+                          cursor: field.taskid === 5 || field.taskid === 6 ? 'not-allowed' : 'auto',
+                          opacity: field.taskid === 5 || field.taskid === 6 ? 0.5 : 1,
+                        }}
                       />
                     )}
                   />
                 </div>
               )}
 
-              {/* ── Type 3: Fixed Time + Date ── */}
+              {/*  Type 3: Fixed Time + Date  */}
               {notifType === 'third' && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
-                      <Clock size={11} /> Fixed Notify Time
-                    </label>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <FieldLabel icon={Clock}>Fixed Notify Time</FieldLabel>
                     <Controller
                       control={control}
                       name={`tasks.${index}.fixed_notify_time`}
@@ -351,43 +369,36 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
                           value={f.value || (field.taskid === 5 ? '00:00' : field.taskid === 6 ? '06:00' : '')}
                           onChange={f.onChange}
                           onBlur={f.onBlur}
-                          className={`border-[3px] border-black px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all ${
-                            field.taskid === 5 || field.taskid === 6 ? 'bg-gray-200 cursor-not-allowed opacity-60' : 'bg-[#fefefe]'
-                          }`}
+                          className="border-[3px] border-[#1a1a1a] px-3 py-2 text-sm font-bold shadow-[3px_3px_0_#1a1a1a] outline-none focus:shadow-[5px_5px_0_#1a1a1a] transition-all bg-[#faf6ef]"
+                          style={{ opacity: field.taskid === 5 || field.taskid === 6 ? 0.5 : 1 }}
                         />
                       )}
                     />
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#0b0b0d]">
-                      <Calendar size={11} /> Fixed Notify Date
-                    </label>
+                  <div className="flex flex-col gap-2">
+                    <FieldLabel icon={Calendar}>Fixed Notify Date</FieldLabel>
                     <input
                       type="date"
                       {...register(`tasks.${index}.fixed_notify_date`, { required: true })}
-                      className="border-[3px] border-black bg-[#fefefe] px-3 py-2 text-sm font-bold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] transition-all"
+                      className="border-[3px] border-[#1a1a1a] bg-[#faf6ef] px-3 py-2 text-sm font-bold shadow-[3px_3px_0_#1a1a1a] outline-none focus:shadow-[5px_5px_0_#1a1a1a] transition-all"
                     />
                   </div>
                 </div>
               )}
 
-              {/* Confirm */}
+              {/* Confirm button */}
               <div className="flex justify-end pt-1">
                 <button
                   type="button"
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`border-[3px] border-black px-5 py-2 text-xs font-black uppercase tracking-wider shadow-[4px_4px_0_#0b0b0d] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_#0b0b0d] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:opacity-60 disabled:cursor-not-allowed ${meta.color}`}
+                  className="border-[3px] border-[#1a1a1a] px-6 py-2.5 text-[11px] font-black uppercase tracking-wider shadow-[4px_4px_0_#1a1a1a] transition-all hover:shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: meta.stripe, color: notifType === 'third' ? '#1a1a1a' : '#fff' }}
                 >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : 'Confirm'}
+                  {isLoading
+                    ? <span className="flex items-center gap-2"><Spinner size={13} /> Processing…</span>
+                    : 'Confirm Update'
+                  }
                 </button>
               </div>
 
@@ -399,7 +410,7 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
   )
 }
 
-// ─── Section ─────────────────────────────────────────────────────────────────
+//  Task Section 
 function TaskSection({ title, type, fields, control, register, userid, showStatusCard }: {
   title: string
   type: NotificationType
@@ -409,22 +420,25 @@ function TaskSection({ title, type, fields, control, register, userid, showStatu
   userid: string
   showStatusCard: (text: string, variant: 'success' | 'error') => void
 }) {
-  const filtered = fields
-    .map((f, i) => ({ field: f, index: i }))
-    .filter(({ field }) => field.notification_type === type)
-
+  const filtered = fields.map((f, i) => ({ field: f, index: i })).filter(({ field }) => field.notification_type === type)
   if (filtered.length === 0) return null
+  const meta = TYPE_META[type]
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`h-[3px] flex-1 border-b-[3px] border-black ${TYPE_META[type].color}`} />
-        <span className="border-[3px] border-black px-4 py-1 text-[11px] font-black uppercase tracking-[0.18em] shadow-[4px_4px_0_#0b0b0d] bg-[#fefefe]">
+    <div className="mb-10">
+      {/* Section divider */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex-1 border-t-[3px] border-dashed border-[#1a1a1a]/20" />
+        <span
+          className="border-[3px] border-[#1a1a1a] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] shadow-[3px_3px_0_#1a1a1a] whitespace-nowrap"
+          style={{ backgroundColor: meta.tint, color: '#1a1a1a' }}
+        >
           {title}
         </span>
-        <div className={`h-[3px] flex-1 border-b-[3px] border-black ${TYPE_META[type].color}`} />
+        <div className="flex-1 border-t-[3px] border-dashed border-[#1a1a1a]/20" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {filtered.map(({ field, index }) => (
           <TaskCard
             key={field.id}
@@ -441,28 +455,22 @@ function TaskSection({ title, type, fields, control, register, userid, showStatu
   )
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+//  Main Update Component ─
 function Update({ userid }: UpdateProps) {
   const [refreshingTasks, setRefreshingTasks] = useState(false)
   const [statusCards, setStatusCards] = useState<{ id: number; text: string; variant: 'success' | 'error' }[]>([])
   const [customNotificationset, setCustomNotification] = useState(false)
 
-  const { control, register, reset } = useForm<FormValues>({
-    defaultValues: { tasks: [] }
-  })
-
+  const { control, register, reset } = useForm<FormValues>({ defaultValues: { tasks: [] } })
   const { fields } = useFieldArray({ control, name: 'tasks' })
-
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
 
   const showStatusCard = (text: string, variant: 'success' | 'error' = 'success') => {
     const id = messageIdRef.current++
     setStatusCards(prev => [...prev, { id, text, variant }])
-    const timeoutId = window.setTimeout(() => {
-      setStatusCards(prev => prev.filter(card => card.id !== id))
-    }, 2500)
-    timeoutsRef.current.push(timeoutId)
+    const tid = window.setTimeout(() => setStatusCards(prev => prev.filter(c => c.id !== id)), 2800)
+    timeoutsRef.current.push(tid)
   }
 
   async function fetchUsertask() {
@@ -470,13 +478,11 @@ function Update({ userid }: UpdateProps) {
     setRefreshingTasks(true)
     try {
       const base = API_BASE_URL ? `${API_BASE_URL}` : ''
-      const response = await fetch(`${base}/api/updateget/${userid}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch(`${base}/api/updateget/${userid}`, {
+        method: 'GET', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
       })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message)
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.message)
       reset({ tasks: result.data })
     } catch (error) {
       console.error(error)
@@ -499,151 +505,94 @@ function Update({ userid }: UpdateProps) {
   const typedFields = fields as (UserTask & { id: string })[]
 
   return (
-    <div className="relative w-full max-w-6xl self-start mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-
-      {/* Soft background accents */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[#7df9ff] opacity-25 blur-2xl" />
-        <div className="absolute top-28 -left-20 h-64 w-64 rounded-full bg-[#ff9f66] opacity-20 blur-2xl" />
-        <div className="absolute bottom-0 right-10 h-48 w-48 rounded-full bg-[#c1ff72] opacity-20 blur-2xl" />
-      </div>
+    <div className="relative w-full">
 
       {/* Custom notification overlay */}
       {customNotificationset && (
         <>
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-md z-40"
-            onClick={() => setCustomNotification(false)}
-          />
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setCustomNotification(false)}
-          >
-            <div onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-[#1a1a1a]/50 backdrop-blur-sm z-40" onClick={() => setCustomNotification(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setCustomNotification(false)}>
+            <div onClick={e => e.stopPropagation()}>
               <CustomNotification setCustomNotification={setCustomNotification} />
             </div>
           </div>
         </>
       )}
 
-      {/* Toast notifications */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col gap-4 pointer-events-none">
+      {/* Toast stack */}
+      <div className="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
         <AnimatePresence>
           {statusCards.map(card => (
             <motion.div
               key={card.id}
-              initial={{ opacity: 0, x: 200 }}
+              initial={{ opacity: 0, x: 120 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 200 }}
-              transition={{ type: 'spring', stiffness: 250, damping: 24 }}
-              className={`pointer-events-auto border-[4px] border-black rounded-none px-5 py-3 shadow-[10px_10px_0_#0b0b0d] text-sm font-black uppercase tracking-wider flex gap-2 items-center ${
-                card.variant === 'success'
-                  ? 'bg-[#c1ff72] text-[#0b0b0d]'
-                  : 'bg-[#ffb5bd] text-[#0b0b0d]'
-              }`}
+              exit={{ opacity: 0, x: 120 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+              className="pointer-events-auto border-[3px] border-[#1a1a1a] px-5 py-3 shadow-[6px_6px_0_#1a1a1a] text-[11px] font-black uppercase tracking-wider flex gap-2 items-center"
+              style={{
+                backgroundColor: card.variant === 'success' ? '#f0d5cf' : '#fdf0ee',
+                color: '#1a1a1a',
+                borderLeftColor: card.variant === 'success' ? '#c8624a' : '#c8624a',
+                borderLeftWidth: 6,
+              }}
             >
-              {card.variant === 'error' ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+              {card.variant === 'error'
+                ? <AlertCircle size={14} style={{ color: '#c8624a' }} />
+                : <CheckCircle size={14} style={{ color: '#c8624a' }} />
+              }
               {card.text}
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Header */}
-      <div className="relative mb-12 overflow-hidden border-[4px] border-black bg-[#fefefe] px-6 py-8 shadow-[12px_12px_0_#0b0b0d]">
-        <div className="pointer-events-none absolute -top-8 -right-4 h-28 w-28 rotate-[12deg] border-[4px] border-black bg-[#7df9ff] opacity-70" />
-        <div className="pointer-events-none absolute -bottom-12 -left-8 h-28 w-28 rotate-6 border-[4px] border-black bg-[#ff9f66] opacity-70" />
-
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="inline-flex items-center gap-2 border-[3px] border-black bg-[#ffff00] px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] shadow-[6px_6px_0_#0b0b0d]">
-                Update Center
-              </p>
-              {/* Refresh button */}
-              <div className="relative ml-auto h-10 w-auto group">
-                <button
-                  type="button"
-                  disabled={refreshingTasks}
-                  onClick={fetchUsertask}
-                  className="relative z-10 flex items-center justify-center gap-1 px-3 py-1 border-[3px] border-black bg-[#2fff2f] shadow-[6px_6px_0_#0b0b0d] transition-colors group-hover:bg-[#08a036] h-full"
-                >
-                  {refreshingTasks ? (
-                    <svg className="h-4 w-4 animate-spin text-black" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                  ) : (
-                    <>
-                      <p className="text-xs font-bold">Refresh</p>
-                      <RefreshCcw size={16} />
-                    </>
-                  )}
-                </button>
-                <span className="absolute inset-0 z-0 bg-[#7df9ff] transition duration-200 group-hover:-translate-x-3 group-hover:-translate-y-3" />
-                <span className="absolute inset-0 z-0 bg-[#ff9f66] transition duration-200 group-hover:translate-x-5 group-hover:translate-y-5" />
-              </div>
-            </div>
-
-            <h1 className="mt-4 text-3xl font-black uppercase leading-tight text-[#0b0b0d] sm:text-[44px]">
-              Update Your Notifications
-            </h1>
-            <p className="mt-2 max-w-xl text-base font-medium text-[#333]">
-              Fine tune intervals, timezones, and cadence rules to match your daily flow.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className="cursor-pointer border-[3px] border-black bg-[#c1ff72] px-4 py-2 text-sm font-bold uppercase tracking-wider shadow-[4px_4px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1"
-              onClick={() => setCustomNotification(prev => !prev)}
-            >
-              + Custom Notification
-            </button>
-            <div className="border-[3px] border-black bg-[#0b0b0d] px-3 py-2 text-xs font-black uppercase tracking-widest text-[#fefefe] shadow-[4px_4px_0_#000]">
+      {/*  Top bar: counts + actions  */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-6 border-b-[3px] border-dashed border-[#1a1a1a]/20">
+        <div className="flex items-center gap-3">
+          {/* Task count badge */}
+          <div className="border-[3px] border-[#1a1a1a] bg-[#1a1a1a] px-4 py-2 shadow-[4px_4px_0_#1a1a1a]">
+            <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: '#f0d08a' }}>
               {typedFields.length} Task{typedFields.length === 1 ? '' : 's'}
-            </div>
+            </span>
           </div>
+
+          {/* Refresh */}
+          <button
+            type="button"
+            disabled={refreshingTasks}
+            onClick={fetchUsertask}
+            className="group flex items-center gap-2 border-[3px] border-[#1a1a1a] bg-white px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#1a1a1a] shadow-[4px_4px_0_#1a1a1a] transition-all hover:shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {refreshingTasks
+              ? <><Spinner size={13} /><span>Loading…</span></>
+              : <><RefreshCcw size={13} className="transition-transform duration-500 group-hover:rotate-180" /><span>Refresh</span></>
+            }
+          </button>
         </div>
+
+        {/* Custom notification CTA */}
+        <button
+          onClick={() => setCustomNotification(p => !p)}
+          className="border-[3px] border-[#1a1a1a] px-5 py-2 text-[11px] font-black uppercase tracking-wider shadow-[4px_4px_0_#1a1a1a] transition-all hover:shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none"
+          style={{ backgroundColor: '#f0d08a', color: '#1a1a1a' }}
+        >
+          + Custom Notification
+        </button>
       </div>
 
       {/* Empty state */}
       {typedFields.length === 0 && !refreshingTasks && (
-        <div className="border-[4px] border-black border-dashed bg-[#fefefe] px-8 py-16 text-center shadow-[8px_8px_0_#0b0b0d]">
-          <p className="text-lg font-black uppercase tracking-widest text-[#aaa]">
-            No tasks found — hit refresh to load
-          </p>
+        <div className="border-[3px] border-dashed border-[#1a1a1a]/20 px-8 py-16 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/30">No tasks found</p>
+          <p className="mt-3 text-lg font-black text-[#1a1a1a]/40">Hit refresh to load your tasks</p>
         </div>
       )}
 
       {/* Task sections */}
-      <TaskSection
-        title="Type 1 · Interval Notifications"
-        type="first"
-        fields={typedFields}
-        control={control}
-        register={register}
-        userid={userid}
-        showStatusCard={showStatusCard}
-      />
-      <TaskSection
-        title="Type 2 · Daily Fixed-Time Notifications"
-        type="second"
-        fields={typedFields}
-        control={control}
-        register={register}
-        userid={userid}
-        showStatusCard={showStatusCard}
-      />
-      <TaskSection
-        title="Type 3 · Scheduled One-Time Notifications"
-        type="third"
-        fields={typedFields}
-        control={control}
-        register={register}
-        userid={userid}
-        showStatusCard={showStatusCard}
-      />
+      <TaskSection title="Interval Notifications"        type="first"  fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
+      <TaskSection title="Daily Fixed-Time Notifications" type="second" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
+      <TaskSection title="Scheduled One-Time Notifications" type="third" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
     </div>
   )
 }
