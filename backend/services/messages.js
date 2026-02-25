@@ -197,51 +197,123 @@ export const exerciseReminders = ({
   next_notify_time = ""
 }) => {
 
-  const headlines = [
-    "🏋️ *Exercise Reminder*",
-    "🤸 *Stay Active Reminder*",
-    "🏃 *Workout Check-In*",
-    "💪 *Fitness Alert*",
-    "🤸‍♂️ *Movement Reminder*",
-    "🏋️‍♀️ *Workout Notification*",
-    "🏃‍♂️ *Activity Reminder*",
-    "💪 *Stay Consistent*",
-    "🤸 *Time to Move*",
-    "🏃 *Fitness Check*"
+  const timeAgo = `
+${days ? (days <= 1 ? `**${days} day**` : `**${days} days**`) : ""}
+${hours ? (hours <= 1 ? `**${hours} hour**` : `**${hours} hours**`) : ""}
+${minutes ? `**${minutes} minutes**` : ""}
+`.trim();
+
+  return [
+
+`## 🏋️ Exercise Reminder ⏰
+
+**Triggered at:** ${present_time}
+
+Hello **${fname} ${lname}** 👋  
+
+It has been ${timeAgo} since your last workout.
+
+💪 Time to get moving and stay active!
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🤸 Stay Active Reminder ⏰
+
+**Triggered at:** ${present_time}
+
+Hey **${fname} ${lname}** 👋  
+
+You haven’t exercised for ${timeAgo}.
+
+🏃 Let’s get some energy flowing!
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🏃 Workout Time ⏰
+
+**Triggered at:** ${present_time}
+
+Hi **${fname} ${lname}** 👋  
+
+Your last workout was ${timeAgo} ago.
+
+🚀 Move your body. Feel amazing.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 💪 Fitness Alert ⏰
+
+**Started at:** ${present_time}
+
+Hello **${fname} ${lname}** 👋  
+
+It has been ${timeAgo} since your last session.
+
+🏋️ Stay strong. Stay healthy.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🤸‍♂️ Quick Movement Reminder ⏰
+
+**Reminder Time:** ${present_time}
+
+Hey **${fname} ${lname}** 👋  
+
+No exercise logged for ${timeAgo}.
+
+🌟 Stretch. Move. Reset.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🏃‍♀️ Fitness Check ⏰
+
+**Triggered at:** ${present_time}
+
+Hi **${fname} ${lname}** 👋  
+
+You last exercised ${timeAgo} ago.
+
+⚡ Even a short workout boosts energy.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 💪 Strength Boost Reminder ⏰
+
+**Initiated at:** ${present_time}
+
+Hello **${fname} ${lname}** 👋  
+
+It has been ${timeAgo} since your last activity.
+
+🏋️‍♂️ Let’s activate those muscles!
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🤸 Movement Alert ⏰
+
+**Triggered at:** ${present_time}
+
+Hey **${fname} ${lname}** 👋  
+
+You haven’t exercised for ${timeAgo}.
+
+🌱 Get up and move for a healthier day.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`,
+
+`## 🏃 Fitness Boost ⏰
+
+**Reminder Time:** ${present_time}
+
+Hi **${fname} ${lname}** 👋  
+
+Your last workout was ${timeAgo} ago.
+
+🔥 Move now and feel energized.
+
+**Next Reminder:** Tomorrow at **${next_notify_time}**`
+
   ];
-
-  const headline =
-    headlines[Math.floor(Math.random() * headlines.length)];
-
-  const timeParts = [
-    days ? `${days} ${days === 1 ? "day" : "days"}` : "",
-    hours ? `${hours} ${hours === 1 ? "hour" : "hours"}` : "",
-    minutes ? `${minutes} ${minutes === 1 ? "minute" : "minutes"}` : ""
-  ].filter(Boolean);
-
-  const timeString =
-    timeParts.length > 0 ? timeParts.join(" ") : "some time ago";
-
-  return `
-${headline}
-
-🕒 *Triggered at:* \`${present_time}\`
-
-━━━━━━━━━━━━━━━━━━
-
-👤 *User:* ${fname} ${lname}
-
-🏋️ *Activity:* Exercise
-
-⏳ *Time Since Last Workout:* ${timeString}
-
-━━━━━━━━━━━━━━━━━━
-
-💪 *Action Required:*  
-Take a few minutes to move your body and maintain consistency.
-
-⏭ *Next Reminder:* Tomorrow at \`${next_notify_time}\`
-`;
 };
 
 

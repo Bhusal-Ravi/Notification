@@ -10,13 +10,10 @@ import { Emailhtml } from "../services/messages.js"
 
 const gmailQueue= new Queue('gmail',{connection})
 const gmailWorker= new Worker('gmail',async job=>{
-    const {waterCount,exerciseCount,studyCount,fname,lname,email,today_date} = job?.data
-    const readableDate = new Date(today_date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'UTC'
-    })
+    const {dailyStreak,dailyCompletion} = job?.data
+    const dailyStreakHtml= ""
+    const dailyCompletionHtml= ""
+    
 
    
    try{
@@ -97,30 +94,29 @@ const mailOptions = {
                         let exerciseCount=0
                         let studyCount=0
              for(const user of users.rows){
-                    const reportUser= await client.query(`
-                                                        select t.taskname,u.fname, ta.taskid,count ( distinct ta.id) from taskactivity ta
-                                                        join userinfo u on ta.userid=u.userid
-                                                        join task t on t.taskid=ta.taskid
-                                                        join taskuser tu on tu.userid=u.userid
-                                                        where ta.userid=$1
-                                                        and (performed_at at time zone tu.timezone)::date = (now() at time zone tu.timezone)::date -  1
-                                                        group by  ta.taskid,t.taskname,u.fname
-                                                        order by count(ta.taskid) desc`,[user.userid])
+                    const dailyStreak= await client.query(`  select  ts.current_streak,ts.taskuser_id,ts.longest_streak,ts.last_completed_date::text ,t.taskname,t.taskpriority
+                                                from task_streak ts join taskuser tu on tu.taskuserid=ts.taskuser_id
+                                                join  task t on tu.taskid=t.taskid
+                                                where tu.userid=$1
+                                                and tu.isactive=true
+                                                order by ts.current_streak desc ,ts.longest_streak desc,ts.last_completed_date desc`,[user.userid])
+
+        const dailyCompletion= await client.query(`select t.taskname ,ta.taskuser_id,
+                                                    count (*) filter (where ta.event_type='completed') as completed_count,
+                                                    count (*) filter (where ta.event_type='sent') as sent_count
+                                                    from taskactivity ta join taskuser tu on tu.taskuserid=ta.taskuser_id 
+                                                    join  task t on tu.taskid=t.taskid 
+                                                        where tu.userid=$1
+                                                    and tu.isactive=true
+                                                    and ta.performed_at::date= (now() at time zone tu.timezone)::date
+                                                    group by  t.taskname,ta.taskuser_id`,[user.userid,])
                         const datas= reportUser.rows
                         
                         
 
-                        for(const data of datas){
-                            if(data.taskname==='Drink Water'){
-                                waterCount=data.count
-                            }else if(data.taskname==='Study Session'){
-                                studyCount=data.count
-                            }else if (data.taskname==='Daily Exercise') {
-                                exerciseCount=data.count
-                            }
-                        }
+                       
 
-                       gmailQueue.add('MidNight Report ',{waterCount,userid:user.userid,exerciseCount,studyCount,today_date:user.today_date,fname:user.fname,lname:user.lname,email:user.email})
+                       gmailQueue.add('MidNight Report ',{dailyStreak:dailyStreak.rows,dailyCompletion:dailyCompletion.rows})
                 }
                 
          }catch(error){

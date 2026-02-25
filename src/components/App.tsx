@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Update from './ui/Update'
 import TelegramStatus from './ui/TelegramStatus'
-import { RefreshCcw, Zap, Globe, Timer, Eye, TrendingUp, Calendar } from 'lucide-react'
+import { RefreshCcw, Zap, Globe, Timer, Calendar } from 'lucide-react'
 import { authClient } from '../../lib/auth-client'
 
 /**
@@ -28,9 +28,22 @@ type UserInfoRow = {
   notify_after: string
 }
 
-type UserStreak = {
-  taskname: string
-  count: number
+type DailyStreak ={
+  current_streak:number
+  taskuser_id:string
+  longest_streak:number
+  last_completed_date:string
+  taskname:string
+  taskpriority:string
+}
+
+type DailyCompletion= {
+  taskname:string
+  taskuser_id:string 
+  completed_count:number
+  sent_count:number
+
+
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
@@ -82,7 +95,8 @@ function App() {
 
   const [userid, setUserId] = useState('')
   const [userinfo, setUserInfo] = useState<UserInfoRow[]>([])
-  const [userStreak, setUserStreak] = useState<UserStreak[]>([])
+  const [dailyStreak, setDailyStreak] = useState<DailyStreak[]>([])
+  const [dailyCompletion,setDailyCompletion]= useState<DailyCompletion[]>([])
   const [loadinginfo, setLoadingInfo] = useState(false)
   const [loadingstreak, setLoadingStreak] = useState(false)
   const [hasInitialized, setHasInitialized] = useState(false)
@@ -90,8 +104,7 @@ function App() {
   const totalActiveTasks = userinfo.length
   const uniqueTimezones = new Set(userinfo.map((t) => t.timezone)).size
   const intervalDriven = userinfo.filter((t) => t.notify_after && t.notify_after !== '0').length
-  const currentlyWatching = userStreak.length
-  const userActivityCount = userStreak.reduce((acc, cur) => acc + (cur.count || 0), 0)
+
 
   async function fetchUser(email: string) {
     try {
@@ -134,8 +147,11 @@ function App() {
         credentials: 'include', headers: { 'Content-Type': 'application/json' },
       })
       const result = await res.json()
+      const {dailyStreak,dailyCompletion}= result
+      console.log(result)
       if (!res.ok) throw new Error(result?.message)
-      setUserStreak(Array.isArray(result?.data) ? result.data : [])
+      setDailyStreak(dailyStreak)
+    setDailyCompletion(dailyCompletion)
     } catch (e) { console.log(e) }
     finally { setLoadingStreak(false) }
   }
@@ -151,12 +167,7 @@ function App() {
   }
   const getCadence = (t: UserInfoRow) =>
     t.taskname === 'Mid Night Report' ? '1 Day' : t.notify_after || '—'
-  const getStreakDesc = (name: string) => {
-    if (name === 'Drink Water') return 'Times water intake was logged today'
-    if (name === 'Daily Exercise') return 'Exercise sessions completed today'
-    if (name === 'Study Session') return 'Study sessions logged today'
-    return 'Total logged entries today'
-  }
+  
 
   return (
     <>
@@ -214,7 +225,7 @@ function App() {
 
       <div className="min-h-screen w-full">
 
-        {/* ── Ticker ──────────────────────────────────────────────────────── */}
+        {/*  Ticker */}
         <div className="w-full overflow-hidden border-b-[3px] border-[#1a1a1a] bg-[#1a1a1a] py-2.5">
           <div className="marquee-inner">
             {[...Array(8)].map((_, i) => (
@@ -372,7 +383,7 @@ function App() {
                     className="text-[48px] sm:text-[64px] font-black uppercase leading-[0.88] text-[#1a1a1a]"
                     style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.01em' }}
                   >
-                    Your Daily<br />Streak
+                    Your Streak<br />Highlights
                   </h2>
                   <p className="text-sm font-medium text-[#1a1a1a]/50 max-w-sm leading-relaxed">
                     Inputs logged via Telegram. Stay consistent — keep the streak alive.
@@ -385,22 +396,8 @@ function App() {
 
               {/* Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Steel highlight */}
-                <div className="border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3 text-white" style={{ backgroundColor: '#4a7c9e' }}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-70">Watching</span>
-                    <Eye size={14} className="opacity-40" />
-                  </div>
-                  <p className="text-[42px] font-black leading-none tabular-nums">{String(currentlyWatching).padStart(2, '0')}</p>
-                </div>
-                {/* Neutral */}
-                <div className="border-[3px] border-[#1a1a1a] bg-white shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-50">Total Activity</span>
-                    <TrendingUp size={14} className="opacity-25" />
-                  </div>
-                  <p className="text-[42px] font-black leading-none tabular-nums">{String(userActivityCount).padStart(2, '0')}</p>
-                </div>
+               
+               
                 {/* Straw date */}
                 <div className="border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-5 flex flex-col gap-3" style={{ backgroundColor: '#f0d08a' }}>
                   <div className="flex items-center justify-between">
@@ -412,48 +409,220 @@ function App() {
               </div>
 
               <div className="border-t-[2px] border-dashed border-[#1a1a1a]/15" />
+                
+           <div className="space-y-12">
 
-              {userStreak.length === 0 ? (
-                <EmptyState title="No Input Yet" body="Log inputs in the Telegram bot to watch them appear here." />
-              ) : (
-                <div className="card-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                  {userStreak.map((data, i) => (
-                    <div
-                      key={data.taskname}
-                      className="fade-up card-lift border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[5px_5px_0_#1a1a1a] overflow-hidden"
+ {/* STREAK PERFORMANCE — ACHIEVEMENT STYLE */}
+  <div className="space-y-4">
+    <h3
+      className="text-[20px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/70 pl-2"
+      style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+    >
+      🔥 Your Streaks
+    </h3>
+
+    {dailyStreak.length === 0 ? (
+      <EmptyState
+        title="No Streak Data"
+        body="Complete a task to begin tracking streak performance."
+      />
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {dailyStreak.map((item) => {
+          const streakPercentage = Math.min((item.current_streak / Math.max(item.longest_streak, 1)) * 100, 100)
+          const isMilestone = item.current_streak > 0 && item.current_streak % 10 === 0
+          
+          return (
+            <div
+              key={item.taskuser_id + "dailystreak"}
+              className="group relative"
+            >
+              {/* Card with dramatic offset shadow */}
+              <div className="relative bg-white border-[4px] border-[#1a1a1a] transform transition-transform duration-200 hover:-translate-y-1 hover:translate-x-1">
+                {/* Colored accent bar at top */}
+                <div 
+                  className="h-3 border-b-[4px] border-[#1a1a1a]"
+                  style={{ backgroundColor: isMilestone ? '#d4a843' : '#4a7c9e' }}
+                />
+
+                <div className="p-6 space-y-5">
+                  {/* Task Name with underline */}
+                  <div className="border-b-[3px] border-dashed border-[#1a1a1a] pb-3">
+                    <h4
+                      className="text-[18px] font-black leading-tight uppercase"
+                      style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}
                     >
-                      {/* Steel tint header */}
-                      <div
-                        className="border-b-[3px] border-[#1a1a1a] px-4 py-2.5"
-                        style={{ backgroundColor: '#c8dcea' }}
-                      >
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/50">Streak Log</span>
-                      </div>
-                      <div className="p-5 flex flex-col gap-4">
-                        <h3
-                          className="text-[26px] font-black text-[#1a1a1a] leading-tight"
-                          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}
-                        >
-                          {data.taskname}
-                        </h3>
-                        {/* Count row — straw accent */}
-                        <div
-                          className="flex items-center justify-between border-[2.5px] border-[#1a1a1a] px-3 py-3 shadow-[3px_3px_0_#1a1a1a]"
-                          style={{ backgroundColor: '#f0d08a' }}
-                        >
-                          <span className="text-[9px] font-black uppercase tracking-[0.22em] text-[#1a1a1a]">Count</span>
-                          <span className="border-[2.5px] border-[#1a1a1a] bg-white px-4 py-1 text-3xl font-black shadow-[3px_3px_0_#1a1a1a] tabular-nums text-[#1a1a1a]">
-                            {String(data.count).padStart(2, '0')}
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-[#1a1a1a]/50 pl-3 border-l-[2.5px] border-[#1a1a1a]/12">
-                          {getStreakDesc(data.taskname)}
-                        </p>
+                      {item.taskname}
+                    </h4>
+                  </div>
+
+                  {/* BIG NUMBER — Current Streak with hard angles */}
+                  <div className="relative">
+                    <div 
+                      className="border-[4px] border-[#1a1a1a] p-6 text-center relative overflow-hidden"
+                      style={{ backgroundColor: isMilestone ? '#d4a843' : '#f0d08a' }}
+                    >
+                      {/* Corner accent */}
+                      <div className="absolute top-0 right-0 w-0 h-0 border-t-[24px] border-r-[24px] border-t-[#1a1a1a] border-r-transparent opacity-20" />
+                      
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1a1a1a] mb-2">ACTIVE</p>
+                      <p className="text-[64px] font-black leading-none text-[#1a1a1a]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        {item.current_streak}
+                      </p>
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <div className="h-[2px] w-8 bg-[#1a1a1a]" />
+                        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1a1a1a]">DAYS</p>
+                        <div className="h-[2px] w-8 bg-[#1a1a1a]" />
                       </div>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Progress Bar with hard edges */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[#1a1a1a]">
+                        BEST: {item.longest_streak}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[#1a1a1a]">
+                        {Math.round(streakPercentage)}%
+                      </span>
+                    </div>
+                    <div className="relative border-[3px] border-[#1a1a1a] h-5 bg-white overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 transition-all duration-500 ease-out border-r-[3px] border-[#1a1a1a]"
+                        style={{ 
+                          width: `${streakPercentage}%`, 
+                          backgroundColor: streakPercentage > 75 ? '#c8624a' : streakPercentage > 50 ? '#4a7c9e' : '#d4a843'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Last Completed Badge with stamp style */}
+                  <div className="border-[3px] border-[#1a1a1a] bg-[#faf6ef] p-3 transform -rotate-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-center">
+                      LAST: <span className="text-[#c8624a]">{item.last_completed_date.split(' ')[0]}</span>
+                    </p>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* Dramatic shadow layer */}
+              <div 
+                className="absolute inset-0 bg-[#1a1a1a] -z-10 transition-transform duration-200"
+                style={{ transform: 'translate(8px, 8px)' }}
+              />
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </div>
+
+  {/* DAILY EXECUTION — PERFORMANCE STYLE */}
+  <div className="space-y-4">
+    <h3
+      className="text-[20px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/70 pl-2"
+      style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+    >
+      ⚡ Today's Performance
+    </h3>
+
+    {dailyCompletion.length === 0 ? (
+      <EmptyState
+        title="No Activity Recorded"
+        body="Today's completion metrics will appear after your first interaction."
+      />
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {dailyCompletion.map((item) => {
+          const completionRate = item.sent_count > 0 ? (item.completed_count / item.sent_count) * 100 : 0
+          const isFullyComplete = item.completed_count > 0 && completionRate === 100
+          
+          return (
+            <div
+              key={item.taskuser_id + "dailycompletion"}
+              className="group relative "
+            >
+              {/* Card with dramatic offset shadow */}
+              <div className="relative h-full bg-white border-[4px] border-[#1a1a1a] transform transition-transform duration-200 hover:-translate-y-1 hover:translate-x-1">
+                {/* Colored accent bar at top */}
+                <div 
+                  className="h-3 border-b-[4px] border-[#1a1a1a]"
+                  style={{ backgroundColor: isFullyComplete ? '#c8624a' : '#4a7c9e' }}
+                />
+
+                <div className="p-6 space-y-5">
+                  {/* Task Name with underline */}
+                  <div className="border-b-[3px] border-dashed border-[#1a1a1a] pb-3">
+                    <h4
+                      className="text-[18px] font-black leading-tight uppercase"
+                      style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}
+                    >
+                      {item.taskname}
+                    </h4>
+                  </div>
+
+                  {/* Completion Rate — BIG & BOLD with geometric shapes */}
+                  <div className="relative">
+                    <div 
+                      className="border-[4px] border-[#1a1a1a] p-6 text-center relative overflow-hidden"
+                      style={{ backgroundColor: isFullyComplete ? '#c8624a' : '#f0d08a' }}
+                    >
+                      {/* Corner accents */}
+                      <div className="absolute top-0 left-0 w-0 h-0 border-t-[20px] border-l-[20px] border-t-transparent border-l-[#1a1a1a] opacity-20" />
+                      <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[20px] border-r-[20px] border-b-transparent border-r-[#1a1a1a] opacity-20" />
+                      
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1a1a1a] mb-2">RATE</p>
+                      <p className="text-[56px] font-black leading-none text-[#1a1a1a]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        {Math.round(completionRate)}%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mini Stats with strong borders */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="border-[3px] border-[#1a1a1a] bg-[#d4a843] p-3 text-center">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#1a1a1a] mb-1">DONE</p>
+                      <p className="text-[32px] font-black text-[#1a1a1a] leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        {item.completed_count}
+                      </p>
+                    </div>
+                    <div className="border-[3px] border-[#1a1a1a] bg-[#4a7c9e] p-3 text-center">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white mb-1">SENT</p>
+                      <p className="text-[32px] font-black text-white leading-none" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        {item.sent_count}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Achievement Badge with stamp rotation */}
+                  {isFullyComplete && (
+                    <div className="border-[4px] border-[#c8624a] bg-white py-3 px-4 transform rotate-2 relative">
+                      <div className="absolute inset-0 border-[2px] border-[#c8624a] m-1" />
+                      <p className="text-[11px] font-black uppercase tracking-[0.3em] text-center text-[#c8624a] relative">
+                        ✓ PERFECT
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Dramatic shadow layer */}
+              <div 
+                className="absolute inset-0 bg-[#1a1a1a] -z-10 transition-transform duration-200"
+                style={{ transform: 'translate(8px, 8px)' }}
+              />
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </div>
+
+</div>
+
+
             </div>
           </section>
 
