@@ -5,8 +5,6 @@ import { Queue, Worker } from "bullmq"
 import { bot } from "../services/telegram.js"
 import { customTaskReminder, exerciseReminders, waterReminders } from "../services/messages.js"
 import { connection } from "../config/redisConnection.js"
-import { replace } from "react-router-dom"
-
 import { nanoid } from 'nanoid';
 
 
@@ -130,7 +128,7 @@ telegramWorker.on('completed',async  job => {
         await client.query(`insert into taskactivity (taskuser_id,event_type)
                              values($1,$2)`,[taskuserid,'sent'])
 
-                             
+
         console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
     } catch (error) {
         console.error('Failed to finalize Telegram job', error)
