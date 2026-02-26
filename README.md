@@ -1,9 +1,16 @@
-# Notification Platform
+![resend-icon-black](https://github.com/user-attachments/assets/59055bec-7e01-446f-aee4-98733b97050b)# Notification Platform
 
 
-<img width="225" height="225" alt="143832033-32e868df-f3b0-4251-97fb-c64809a43d36" src="https://github.com/user-attachments/assets/2240f8b0-a0a0-4454-960d-a3bc7f9d5274" />
-<img width="225" height="225" alt="images" src="https://github.com/user-attachments/assets/b7a03c85-c846-4ffe-ab9d-43627c54f6cd" />
-<img width="225" height="225" alt="5968342" src="https://github.com/user-attachments/assets/879a3b2c-efbb-4c95-b546-4190da0bbc81" />
+<img width="100" height="100" alt="143832033-32e868df-f3b0-4251-97fb-c64809a43d36" src="https://github.com/user-attachments/assets/2240f8b0-a0a0-4454-960d-a3bc7f9d5274" />
+<img width="100" height="100" alt="images" src="https://github.com/user-attachments/assets/b7a03c85-c846-4ffe-ab9d-43627c54f6cd" />
+<img width="100" height="100" alt="5968342" src="https://github.com/user-attachments/assets/879a3b2c-efbb-4c95-b546-4190da0bbc81" />
+<img width="100" height="100" alt="2111646" src="https://github.com/user-attachments/assets/a0e11ef7-cfcd-4c9c-83e3-cb8d3c9ce79c" />
+![Uploading resend<svg width="100" height="100" viewBox="0 0 1800 1800" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1000.46 450C1174.77 450 1278.43 553.669 1278.43 691.282C1278.43 828.896 1174.77 932.563 1000.46 932.563H912.382L1350 1350H1040.82L707.794 1033.48C683.944 1011.47 672.936 985.781 672.935 963.765C672.935 932.572 694.959 905.049 737.161 893.122L908.712 847.244C973.85 829.812 1018.81 779.353 1018.81 713.298C1018.8 632.567 952.745 585.78 871.095 585.78H450V450H1000.46Z" fill="black"/>
+</svg>
+-icon-black.svg…]()
+<img width="100" height="100" alt="99371_javascript_512x512" src="https://github.com/user-attachments/assets/8cb85ad4-9a5f-4210-89f9-e49d41527bd5" />
+<img width="100" height="100" alt="React-icon svg" src="https://github.com/user-attachments/assets/aa3a7f84-e907-43c1-b44d-9239c0581049" />
 
 
 Multi-channel notification system that helps users stay on top of hydration, workouts, study blocks, quotes of the day, and automated midnight summaries. The platform blends a Telegram bot, Resend-powered email reports, a BullMQ scheduling layer, and a React dashboard so users can inspect and tune their notification cadences.
