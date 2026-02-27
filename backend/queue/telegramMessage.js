@@ -309,8 +309,8 @@ export async function enqueueWaterMessage(){
 										 where tu.isactive=$1 and tt.taskid=$2
                                          and now()- tu.last_user_activity>= tu.notify_after
                                          and now()-lastcheck>= tu.notify_after
-                                         and ( now() at time zone 'Asia/Kathmandu')::time >= tu.online
-                                         and ( now() at time zone 'Asia/Kathmandu')::time <= tu.offline
+                                         and ( now() at time zone tu.timezone)::time >= tu.online
+                                         and ( now() at time zone tu.timezone)::time <= tu.offline
                                          `,[true,1])
 
                 
@@ -434,8 +434,8 @@ export async function customType1 (){
                                          and notification_type=$3
                                          and now()- tu.last_user_activity>= tu.notify_after
                                          and now()-lastcheck>= tu.notify_after
-                                         and ( now() at time zone 'Asia/Kathmandu')::time >= tu.online
-                                         and ( now() at time zone 'Asia/Kathmandu')::time <= tu.offline
+                                         and ( now() at time zone tu.timezone)::time >= tu.online
+                                         and ( now() at time zone tu.timezone)::time <= tu.offline
                                          `,[true,'usercreated','first'])
                                          
 

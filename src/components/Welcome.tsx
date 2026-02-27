@@ -227,7 +227,7 @@ function Welcome({children}:Props) {
                 />
               </div>
               <div className='flex flex-col gap-1'>
-                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Last Name</label>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Online Time</label>
                 <input
                   type='time'
                   value={online}
@@ -237,7 +237,7 @@ function Welcome({children}:Props) {
                 />
               </div>
               <div className='flex flex-col gap-1'>
-                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Last Name</label>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Offline Time</label>
                 <input
                   type='time'
                   value={offline}
@@ -246,6 +246,9 @@ function Welcome({children}:Props) {
                   placeholder='11 PM'
                 />
               </div>
+              <p className='text-xs text-[#666] mt-1 italic'>
+                Recurring notifications will only be sent between your online and offline times. No reminders outside these hours.
+              </p>
             </div>
 
             <div className='mt-6 flex justify-center'>
