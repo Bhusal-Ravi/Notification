@@ -1,5 +1,15 @@
 # Notification Platform
 
+
+<img width="100" height="100" alt="143832033-32e868df-f3b0-4251-97fb-c64809a43d36" src="https://github.com/user-attachments/assets/2240f8b0-a0a0-4454-960d-a3bc7f9d5274" />
+<img width="100" height="100" alt="images" src="https://github.com/user-attachments/assets/b7a03c85-c846-4ffe-ab9d-43627c54f6cd" />
+<img width="100" height="100" alt="5968342" src="https://github.com/user-attachments/assets/879a3b2c-efbb-4c95-b546-4190da0bbc81" />
+<img width="100" height="100" alt="2111646" src="https://github.com/user-attachments/assets/a0e11ef7-cfcd-4c9c-83e3-cb8d3c9ce79c" />
+<img width="100" height="100" alt="favicon@180x180" src="https://github.com/user-attachments/assets/f9df0ec1-b4f2-403b-b0b4-7a78a01f6ab1" />
+<img width="100" height="100" alt="99371_javascript_512x512" src="https://github.com/user-attachments/assets/8cb85ad4-9a5f-4210-89f9-e49d41527bd5" />
+<img width="100" height="100" alt="React-icon svg" src="https://github.com/user-attachments/assets/aa3a7f84-e907-43c1-b44d-9239c0581049" />
+
+
 Multi-channel notification system that helps users stay on top of hydration, workouts, study blocks, quotes of the day, and automated midnight summaries. The platform blends a Telegram bot, Resend-powered email reports, a BullMQ scheduling layer, and a React dashboard so users can inspect and tune their notification cadences.
 
 ## Core Capabilities
