@@ -15,7 +15,7 @@ const DEFAULT_TASKS = [
 export  function taskuserseed(){
     
     const payload= DEFAULT_TASKS.map((item)=>(
-   `($1,${item.taskid},false,now(),now(),now())`
+   `($1,${item.taskid},false,now(),now(),now(),(select online from userinfo where userid=$1),(select offline from userinfo where userid=$1))`
 )).join(',')
 
 return {payload:payload,tasknumber:DEFAULT_TASKS.length}

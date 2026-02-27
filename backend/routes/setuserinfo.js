@@ -12,7 +12,7 @@ router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
     try{
         client= await pool.connect()
         await client.query('BEGIN')
-      const {email,fname,lname}= req.body
+      const {email,fname,lname,online,offline}= req.body
       const session= req.session
       if(!email || !fname || !lname){
         await client.query('ABORT')
@@ -20,12 +20,12 @@ router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
       }  
 
 
-      const setnewuser= await client.query(`insert into userinfo(userid,fname,lname,email)
-                                            values($1,$2,$3,$4)
+      const setnewuser= await client.query(`insert into userinfo(userid,fname,lname,email,online,offline)
+                                            values($1,$2,$3,$4,$5,$6)
                                             on conflict (email) 
                                             do update 
                                             set fname=$1,lname=$2,email=$3
-                                            returning userid`,[session.user.id,fname,lname,email]);
+                                            returning userid`,[session.user.id,fname,lname,email,online,offline]);
 
 
         if(setnewuser.rowCount===0){
@@ -35,7 +35,7 @@ router.put('/setuserinfo',authenticateSession,limiter,async(req,res)=>{
         }
 
         const seedData= taskuserseed()
-        const taskseed= await client.query(`insert into taskuser (userid,taskid,isactive,createdat,lastcheck,last_user_activity)
+        const taskseed= await client.query(`insert into taskuser (userid,taskid,isactive,createdat,lastcheck,last_user_activity,online,offline)
                                                                 values
                                                                 ${seedData.payload}
                                                                 `,[setnewuser.rows[0].userid])

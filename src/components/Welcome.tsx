@@ -23,6 +23,8 @@ type Props={
 function Welcome({children}:Props) {
   const [fname,setFname]= useState('')
   const [lname,setLname]= useState('')
+  const [online,setOnline]= useState('')
+  const [offline,setOffline] = useState('')
   const [loading,setLoading]= useState(false)
   const [checkLoading,setcheckLoading]= useState(false)
   
@@ -61,7 +63,7 @@ function Welcome({children}:Props) {
             'Content-Type':'application/json'
           },
           credentials:'include',
-          body:JSON.stringify({email,fname:fname,lname:lname})
+          body:JSON.stringify({email,fname:fname,lname:lname,online:online,offline:offline})
       })
       const result= await response.json();
       if(!response.ok){
@@ -222,6 +224,26 @@ function Welcome({children}:Props) {
                   onChange={(e) => setLname(e.target.value)}
                   className='border-[3px] border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] focus:bg-[#fffbe6] transition-all'
                   placeholder='Doe'
+                />
+              </div>
+              <div className='flex flex-col gap-1'>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Last Name</label>
+                <input
+                  type='time'
+                  value={online}
+                  onChange={(e) => setOnline(e.target.value)}
+                  className='border-[3px] border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] focus:bg-[#fffbe6] transition-all'
+                  placeholder='6 AM'
+                />
+              </div>
+              <div className='flex flex-col gap-1'>
+                <label className='text-xs font-bold uppercase tracking-[0.2em] text-[#0b0b0d]'>Last Name</label>
+                <input
+                  type='time'
+                  value={offline}
+                  onChange={(e) => setOffline(e.target.value)}
+                  className='border-[3px] border-black px-4 py-2 text-sm font-semibold shadow-[4px_4px_0_#0b0b0d] outline-none focus:shadow-[6px_6px_0_#0b0b0d] focus:bg-[#fffbe6] transition-all'
+                  placeholder='11 PM'
                 />
               </div>
             </div>

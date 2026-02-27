@@ -339,8 +339,143 @@ export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
   "Here’s to a thoughtful start to your day 🌄"]
 
 
-  export function Emailhtml({waterCount,exerciseCount,studyCount,fname,lname,readableDate}){
-    return (`<!DOCTYPE html>
+
+export function dailyStreakHtmlProvider ({item}){
+  const {current_streak,longest_streak,last_completed_date,taskname}= item
+    return (`
+<!-- Task Card Start -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
+  <tr>
+    <td align="center">
+
+      <table width="640" cellpadding="0" cellspacing="0" 
+             style="background:#ffffff;border:2px solid #1a1a1a;">
+
+        <!-- Task Header -->
+        <tr>
+          <td style="padding:20px 30px;background:#1a1a1a;border-bottom:3px solid #ff6b35;">
+            <div style="font-size:16px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
+              ${taskname}
+            </div>
+          </td>
+        </tr>
+
+        <!-- Current Streak Box -->
+        <tr>
+          <td style="padding:30px;">
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#f1d7a6;border:3px solid #1a1a1a;">
+              <tr>
+                <td align="center" style="padding:25px;">
+                  <div style="font-size:12px;letter-spacing:2px;color:#333;">
+                    CURRENT STREAK
+                  </div>
+
+                  <div style="font-size:52px;font-weight:900;color:#1a1a1a;margin:8px 0;">
+                    ${current_streak}
+                  </div>
+
+                  <div style="font-size:13px;letter-spacing:2px;color:#333;">
+                    DAYS
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Stats Row -->
+        <tr>
+          <td style="padding:0 30px 20px 30px;font-size:14px;color:#1a1a1a;">
+            <strong>Longest Streak:</strong> ${longest_streak} days
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:0 30px 25px 30px;font-size:14px;color:#1a1a1a;">
+            <strong>Last Completed:</strong> ${last_completed_date}
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+<!-- Task Card End -->
+`)
+}
+
+export function dailyCompletionStreakHtmlProvider({item}){
+  const {taskname,completed_count,sent_count}=item
+  return (`
+<!-- Daily Completion Card Start -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
+  <tr>
+    <td align="center">
+
+      <table width="640" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border:2px solid #1a1a1a;">
+
+        <!-- Header -->
+        <tr>
+          <td style="padding:20px 30px;background:#1a1a1a;border-bottom:3px solid #4e73df;">
+            <div style="font-size:16px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
+              ${taskname}
+            </div>
+          </td>
+        </tr>
+
+        <!-- Stats Grid -->
+        <tr>
+          <td style="padding:30px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+
+                <!-- Completed Count -->
+                <td width="50%" align="center" 
+                    style="background:#e8f0ff;border:2px solid #1a1a1a;padding:25px;">
+                  <div style="font-size:12px;letter-spacing:2px;color:#333;">
+                    TASKS COMPLETED
+                  </div>
+
+                  <div style="font-size:42px;font-weight:900;color:#1a1a1a;margin-top:8px;">
+                    ${completed_count}
+                  </div>
+                </td>
+
+                <!-- Spacer -->
+                <td width="4%"></td>
+
+                <!-- Notification Count -->
+                <td width="46%" align="center" 
+                    style="background:#fff3e6;border:2px solid #1a1a1a;padding:25px;">
+                  <div style="font-size:12px;letter-spacing:2px;color:#333;">
+                    NOTIFICATIONS SENT
+                  </div>
+
+                  <div style="font-size:42px;font-weight:900;color:#1a1a1a;margin-top:8px;">
+                    ${sent_count}
+                  </div>
+                </td>
+
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+<!-- Daily Completion Card End -->
+`)
+}
+
+
+  export function Emailhtml({fname,lname,readableDate,dailyStreakHtml,dailyCompletionHtml}){
+   return (`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -377,66 +512,43 @@ export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
           </td>
         </tr>
 
-        <!-- Water Intake -->
+        <!-- STREAK CARDS SECTION -->
         <tr>
-          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
-            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
-              💧 Water Intake: <strong>${waterCount}</strong>
-            </p>
-            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
-              Total number of water intakes you logged today — glasses, bottles, or cups.
-            </p>
+          <td style="padding:30px 20px 10px 20px;">
+            ${dailyStreakHtml}
           </td>
         </tr>
 
-        <!-- Exercise -->
+        <!-- COMPLETION CARDS SECTION -->
         <tr>
-          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
-            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
-              🏃‍♂️ Exercise Sessions: <strong>${exerciseCount}</strong>
-            </p>
-            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
-              Total exercise sessions you completed today — workouts, runs, or any physical activity.
-            </p>
+          <td style="padding:10px 20px 30px 20px;">
+            ${dailyCompletionHtml}
           </td>
         </tr>
 
-        <!-- Study -->
-        <tr>
-          <td style="padding:28px 40px;border-bottom:1px solid #e0e0e0;">
-            <p style="margin:0;font-size:20px;font-weight:600;color:#1a1a1a;">
-              📘 Study Sessions: <strong>${studyCount}</strong>
-            </p>
-            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#4a4a4a;">
-              Total study sessions you recorded today — reading, practice, or focused learning.
-            </p>
-          </td>
-        </tr>
-
-        <!-- Instructions Section -->
+        <!-- Instructions -->
         <tr>
           <td style="padding:32px 40px;background:#fffbf5;border-top:2px solid #1a1a1a;border-bottom:2px solid #1a1a1a;">
             <p style="margin:0 0 12px;font-size:20px;font-weight:700;color:#1a1a1a;text-align:center;">
-              How to Log Your Activities
-            </p>
-            <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#2a2a2a;text-align:center;">
-              Use our Telegram bot to instantly track your daily habits. Just send one of the commands below:
+              How It Works
             </p>
 
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td align="center" style="padding:6px 0;font-size:15px;">
-                  💧 <strong>/input water</strong> — Log water intake
+                <td align="center" style="padding:8px 0;font-size:15px;">
+                  📩 When a notification arrives on <strong>Telegram</strong>,
                 </td>
               </tr>
+
               <tr>
-                <td align="center" style="padding:6px 0;font-size:15px;">
-                  📘 <strong>/input study</strong> — Log a study session
+                <td align="center" style="padding:8px 0;font-size:15px;">
+                  ✅ You can mark the task as <strong>Completed</strong> or <strong>Missed</strong>.
                 </td>
               </tr>
+
               <tr>
-                <td align="center" style="padding:6px 0;font-size:15px;">
-                  🏃‍♂️ <strong>/input exercise</strong> — Log an exercise session
+                <td align="center" style="padding:8px 0;font-size:15px;">
+                  📊 Your response is recorded and used to generate this structured report.
                 </td>
               </tr>
             </table>
@@ -480,6 +592,5 @@ export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
 </table>
 
 </body>
-</html>
-`)
+</html>`);
   }
