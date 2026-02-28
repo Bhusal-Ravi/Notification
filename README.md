@@ -106,6 +106,7 @@ Install + run:
 - Queues (`schedular`, `telegram`, `gmail`, `qotd`) require Redis connectivity; ensure the Redis URI matches your `.env` before relying on scheduled jobs.
 
 - `src/components/index.css` registers custom Mabry Pro fonts; keep assets under `src/assets/fonts` in sync if you tweak typography.
+New fonts can be added.
 
 ## Visual Preview
 
