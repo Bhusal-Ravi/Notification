@@ -1,5 +1,6 @@
 import { RefreshCcw, AlertCircle, Clock, Calendar, Globe, CheckCircle, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import TimezoneSelect from "react-timezone-select"
 import { AnimatePresence, motion } from 'framer-motion'
 import CustomNotification from '../CustomNotification'
@@ -35,7 +36,10 @@ type UserTask = {
   taskpriority: string
 }
 
-type UpdateProps = { userid: string }
+type UpdateProps = {
+  userid: string
+  showStatusCard: (text: string, variant: 'success' | 'error') => void
+}
 
 const COMMON_INTERVALS = [
   { label: '5 min',  value: '5 minutes'  },
@@ -456,22 +460,12 @@ function TaskSection({ title, type, fields, control, register, userid, showStatu
 }
 
 //  Main Update Component ─
-function Update({ userid }: UpdateProps) {
+function Update({ userid, showStatusCard }: UpdateProps) {
   const [refreshingTasks, setRefreshingTasks] = useState(false)
-  const [statusCards, setStatusCards] = useState<{ id: number; text: string; variant: 'success' | 'error' }[]>([])
   const [customNotificationset, setCustomNotification] = useState(false)
 
   const { control, register, reset } = useForm<FormValues>({ defaultValues: { tasks: [] } })
   const { fields } = useFieldArray({ control, name: 'tasks' })
-  const messageIdRef = useRef(0)
-  const timeoutsRef = useRef<number[]>([])
-
-  const showStatusCard = (text: string, variant: 'success' | 'error' = 'success') => {
-    const id = messageIdRef.current++
-    setStatusCards(prev => [...prev, { id, text, variant }])
-    const tid = window.setTimeout(() => setStatusCards(prev => prev.filter(c => c.id !== id)), 2800)
-    timeoutsRef.current.push(tid)
-  }
 
   async function fetchUsertask() {
     if (!userid) return
@@ -494,7 +488,6 @@ function Update({ userid }: UpdateProps) {
 
   useEffect(() => {
     fetchUsertask()
-    return () => { timeoutsRef.current.forEach(clearTimeout) }
   }, [userid])
 
   useEffect(() => {
@@ -507,8 +500,8 @@ function Update({ userid }: UpdateProps) {
   return (
     <div className="relative w-full">
 
-      {/* Custom notification overlay */}
-      {customNotificationset && (
+      {/* Custom notification overlay — portaled to body to escape ancestor transforms */}
+      {customNotificationset && createPortal(
         <>
           <div className="fixed inset-0 bg-[#1a1a1a]/50 backdrop-blur-sm z-40" onClick={() => setCustomNotification(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setCustomNotification(false)}>
@@ -516,36 +509,9 @@ function Update({ userid }: UpdateProps) {
               <CustomNotification setCustomNotification={setCustomNotification} />
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
-
-      {/* Toast stack */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
-        <AnimatePresence>
-          {statusCards.map(card => (
-            <motion.div
-              key={card.id}
-              initial={{ opacity: 0, x: 120 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 120 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 26 }}
-              className="pointer-events-auto border-[3px] border-[#1a1a1a] px-5 py-3 shadow-[6px_6px_0_#1a1a1a] text-[11px] font-black uppercase tracking-wider flex gap-2 items-center"
-              style={{
-                backgroundColor: card.variant === 'success' ? '#f0d5cf' : '#fdf0ee',
-                color: '#1a1a1a',
-                borderLeftColor: card.variant === 'success' ? '#c8624a' : '#c8624a',
-                borderLeftWidth: 6,
-              }}
-            >
-              {card.variant === 'error'
-                ? <AlertCircle size={14} style={{ color: '#c8624a' }} />
-                : <CheckCircle size={14} style={{ color: '#c8624a' }} />
-              }
-              {card.text}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
 
       {/*  Top bar: counts + actions  */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8 pb-6 border-b-[3px] border-dashed border-[#1a1a1a]/20">

@@ -50,6 +50,11 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
             }
         },[])
 
+        useEffect(() => {
+            document.body.style.overflow = 'hidden'
+            return () => { document.body.style.overflow = '' }
+        }, [])
+
         const showStatusCard = (text: string, variant: 'success' | 'error' = 'success') => {
             const id = messageIdRef.current++
             setStatusCards(prev => [...prev, { id, text, variant }])
@@ -197,28 +202,33 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
         }
 
   return (
-    <div className='relative bg-black/50  z-20 flex flex-col justify-center items-center w-full max-w-4xl mx-auto px-6 py-10'>
-        {/* Status Cards */}
-        <button 
-          className='absolute cursor-pointer top-0 right-5 border-[3px] border-black bg-[#ffb5bd] px-2 py-1 text-sm font-bold uppercase tracking-wider shadow-[4px_4px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1' 
-          onClick={()=>setCustomNotification(prev=>!prev)}
-        >
-          Cancel
-        </button>
-        <div className="fixed top-6  right-6 z-50 flex flex-col gap-4 pointer-events-none">
+    <div className='fixed inset-0 z-50 overflow-y-auto' style={{ backgroundColor: '#f2ece0', backgroundImage: 'radial-gradient(#1a1a1a0f 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+      <div className='w-full max-w-5xl mx-auto px-4 sm:px-6 py-10 relative'>
+        {/* Cancel Button */}
+        <div className='flex justify-end mb-6'>
+          <button 
+            className='cursor-pointer border-[3px] border-[#1a1a1a] bg-white px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#1a1a1a] shadow-[4px_4px_0_#1a1a1a] transition-all duration-150 hover:shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]' 
+            onClick={()=>setCustomNotification(prev=>!prev)}
+          >
+            ✕ Cancel
+          </button>
+        </div>
+        <div className="fixed inset-0 z-[100] flex flex-col gap-3 pointer-events-none items-center justify-center">
             <AnimatePresence>
                 {statusCards.map(card => (
                     <motion.div
                         key={card.id}
-                        initial={{ opacity: 0, x: 200 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 200 }}
-                        transition={{ duration: 0.3 }}
-                        className={`px-6 py-4 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_#000] font-medium ${
-                            card.variant === 'success' 
-                                ? 'bg-[#90EE90] text-black' 
-                                : 'bg-[#ff6b6b] text-white'
-                        }`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+                        className="pointer-events-auto border-[3px] border-[#1a1a1a] px-6 py-4 shadow-[6px_6px_0_#1a1a1a] text-sm font-black uppercase tracking-wider flex gap-2 items-center w-[90%] max-w-md"
+                        style={{
+                            backgroundColor: card.variant === 'success' ? '#f0d5cf' : '#fdf0ee',
+                            color: '#1a1a1a',
+                            borderLeftColor: '#c8624a',
+                            borderLeftWidth: 6,
+                        }}
                     >
                         {card.text}
                     </motion.div>
@@ -227,54 +237,54 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
         </div>
 
         {/* Notification Type Selector */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10'>
-            <button onClick={()=>handleCheck('first')} className={`text-left p-5 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:-translate-y-1 ${check==='first' ? 'bg-[#ffff00]' : 'bg-white'}`}>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-5 w-full mb-10'>
+            <button onClick={()=>handleCheck('first')} className={`text-left p-5 border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] transition-all duration-150 hover:shadow-[3px_3px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] ${check==='first' ? 'bg-[#f0d5cf]' : 'bg-white'}`}>
               <div className='flex items-center justify-between mb-2'>
-                <h2 className='font-bold text-lg'>Interval</h2>
-                <div className={`w-5 h-5 rounded-sm border-2 border-black flex items-center justify-center ${check==='first' ? 'bg-black' : 'bg-white'}`}>
+                <h2 className='text-[18px] font-black uppercase tracking-wider' style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Interval</h2>
+                <div className={`w-5 h-5 border-[3px] border-[#1a1a1a] flex items-center justify-center ${check==='first' ? 'bg-[#c8624a]' : 'bg-white'}`}>
                   {check==='first' && <span className='text-white text-xs font-black'>✓</span>}
                 </div>
               </div>
-              <p className='text-sm leading-relaxed'>Sent after a user-specified interval, e.g. every 1 hour, 15 minutes, 2 days</p>
+              <p className='text-xs font-medium leading-relaxed text-[#1a1a1a]/50'>Sent after a user-specified interval, e.g. every 1 hour, 15 minutes, 2 days</p>
             </button>
 
-            <button onClick={()=>handleCheck('second')} className={`text-left p-5 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:-translate-y-1 ${check==='second' ? 'bg-[#4ecdc4]' : 'bg-white'}`}>
+            <button onClick={()=>handleCheck('second')} className={`text-left p-5 border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] transition-all duration-150 hover:shadow-[3px_3px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] ${check==='second' ? 'bg-[#d1e3ee]' : 'bg-white'}`}>
               <div className='flex items-center justify-between mb-2'>
-                <h2 className='font-bold text-lg'>Daily Fixed Time</h2>
-                <div className={`w-5 h-5 rounded-sm border-2 border-black flex items-center justify-center ${check==='second' ? 'bg-black' : 'bg-white'}`}>
+                <h2 className='text-[18px] font-black uppercase tracking-wider' style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Daily Fixed Time</h2>
+                <div className={`w-5 h-5 border-[3px] border-[#1a1a1a] flex items-center justify-center ${check==='second' ? 'bg-[#4a7c9e]' : 'bg-white'}`}>
                   {check==='second' && <span className='text-white text-xs font-black'>✓</span>}
                 </div>
               </div>
-              <p className='text-sm leading-relaxed'>Sent each day at a fixed time, e.g. exercise reminder at 3:45 PM</p>
+              <p className='text-xs font-medium leading-relaxed text-[#1a1a1a]/50'>Sent each day at a fixed time, e.g. exercise reminder at 3:45 PM</p>
             </button>
 
-            <button onClick={()=>handleCheck('third')} className={`text-left p-5 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:-translate-y-1 ${check==='third' ? 'bg-[#a78bfa]' : 'bg-white'}`}>
+            <button onClick={()=>handleCheck('third')} className={`text-left p-5 border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] transition-all duration-150 hover:shadow-[3px_3px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] ${check==='third' ? 'bg-[#f0d08a]' : 'bg-white'}`}>
               <div className='flex items-center justify-between mb-2'>
-                <h2 className='font-bold text-lg'>One-Time</h2>
-                <div className={`w-5 h-5 rounded-sm border-2 border-black flex items-center justify-center ${check==='third' ? 'bg-black' : 'bg-white'}`}>
+                <h2 className='text-[18px] font-black uppercase tracking-wider' style={{ fontFamily: "'Bebas Neue', sans-serif" }}>One-Time</h2>
+                <div className={`w-5 h-5 border-[3px] border-[#1a1a1a] flex items-center justify-center ${check==='third' ? 'bg-[#d4a843]' : 'bg-white'}`}>
                   {check==='third' && <span className='text-white text-xs font-black'>✓</span>}
                 </div>
               </div>
-              <p className='text-sm leading-relaxed'>Sent once at a fixed date and time, e.g. meeting at 10:00 AM on 2026/04/08</p>
+              <p className='text-xs font-medium leading-relaxed text-[#1a1a1a]/50'>Sent once at a fixed date and time, e.g. meeting at 10:00 AM on 2026/04/08</p>
             </button>
         </div>
 
         {/* Input Section */}
         <div className='w-full'>
             {check==='first' ? (
-              <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
-                <h2 className='font-bold text-xl mb-1'>Frequently Repeating Notifications</h2>
-                <p className='text-sm mb-4 text-gray-600'>Enter an interval like "1 hour", "15 minutes", or "2 days"</p>
+              <div className='bg-[#faf6ef] border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-6 sm:p-8'>
+                <h2 className='text-[28px] font-black uppercase leading-tight text-[#1a1a1a] mb-1' style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}>Frequently Repeating Notifications</h2>
+                <p className='text-xs font-medium mb-4 text-[#1a1a1a]/50'>Enter an interval like "1 hour", "15 minutes", or "2 days"</p>
                 <div className='flex flex-col gap-3'>
                   <input
-                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#ffff00]'
+                    className='w-full px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#c8624a] bg-white'
                     onChange={(e)=>setFirstData((prev)=>({...prev, title:e.target.value}))}
                     type='text'
                     placeholder='Notification title'
                   />
                   <div>
-                    <p className='mb-2 text-xs font-bold uppercase tracking-widest'>Timezone</p>
-                    <div className='border-2 border-black bg-white rounded-md'>
+                    <p className='mb-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/60'>Timezone</p>
+                    <div className='border-[3px] border-[#1a1a1a] bg-white'>
                       <TimezoneSelect
                         value={firstData.timezone}
                         onChange={(e) =>
@@ -288,155 +298,13 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
                   </div>
                 <div className='flex flex-col sm:flex-row gap-3'>
                   <input
-                    className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#ffff00]'
+                    className='flex-1 px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#c8624a] bg-white'
                     onChange={(e)=>setFirstData((prev)=>({...prev, interval:e.target.value}))}
                     type='text'
                     placeholder='e.g. 1 hour'
                   />
-                  <button onClick={()=>handleFirst(firstData?.interval??"")} disabled={loading} className='bg-black rounded-md'>
-                    <span className={`bg-[#ffff00] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold transition-all ${
-                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
-                    }`}>
-                      {loading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg
-                            className="h-5 w-5 animate-spin text-black"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                            />
-                          </svg>
-                          Processing...
-                        </span>
-                      ) : (
-                        'Confirm'
-                      )}
-                    </span>
-                  </button>
-                </div>
-                </div>
-                <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
-              </div>
-            ) : check==='second' ? (
-              <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
-                <h2 className='font-bold text-xl mb-1'>Daily Repeating Notifications</h2>
-                <p className='text-sm mb-4 text-gray-600'>Pick a time — you'll be notified every day at this time</p>
-                <div className='flex flex-col gap-3'>
-                  <input
-                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#4ecdc4]'
-                    onChange={(e)=>setSecondData((prev)=>({...prev, title:e.target.value}))}
-                    type='text'
-                    placeholder='Notification title'
-                  />
-                  <div>
-                    <p className='mb-2 text-xs font-bold uppercase tracking-widest'>Timezone</p>
-                    <div className='border-2 border-black bg-white rounded-md'>
-                      <TimezoneSelect
-                        value={secondData.timezone}
-                        onChange={(e) =>
-                          setSecondData((prev) => ({
-                            ...prev,
-                            timezone: e.value
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-                <div className='flex flex-col sm:flex-row gap-3'>
-                  <input
-                    className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#4ecdc4]'
-                    onChange={(e)=>setSecondData((prev)=>({...prev, fixed_notify_time:e.target.value}))}
-                    type='time'
-                  />
-                  <button onClick={handleSecond} disabled={loading} className='bg-black rounded-md'>
-                    <span className={`bg-[#4ecdc4] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold transition-all ${
-                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
-                    }`}>
-                      {loading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg
-                            className="h-5 w-5 animate-spin text-black"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                            />
-                          </svg>
-                          Processing...
-                        </span>
-                      ) : (
-                        'Confirm'
-                      )}
-                    </span>
-                  </button>
-                </div>
-                </div>
-                <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
-              </div>
-            ) : (
-              <div className='bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] p-6'>
-                <h2 className='font-bold text-xl mb-1'>One-Time Notification</h2>
-                <p className='text-sm mb-4 text-gray-600'>Pick a date and time — you'll be notified exactly once</p>
-                <div className='flex flex-col gap-3'>
-                  <input
-                    className='w-full px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#a78bfa]'
-                    onChange={(e)=>setThirdData((prev)=>({...prev, title:e.target.value}))}
-                    type='text'
-                    placeholder='Notification title'
-                  />
-                  <div>
-                    <p className='mb-2 text-xs font-bold uppercase tracking-widest'>Timezone</p>
-                    <div className='border-2 border-black bg-white rounded-md'>
-                      <TimezoneSelect
-                        value={thirdData.timezone}
-                        onChange={(e) =>
-                          setThirdData((prev) => ({
-                            ...prev,
-                            timezone: e.value
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-                <div className='flex flex-col sm:flex-row gap-3'>
-                  <input
-                    className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#a78bfa]'
-                    onChange={(e)=>setThirdData((prev)=>({...prev,fixed_notify_time:e.target.value}))}
-                    type='time'
-                  />
-                  <input
-                    className='flex-1 px-4 py-3 border-2 border-black rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#a78bfa]'
-                    onChange={(e)=>setThirdData((prev)=>({...prev,fixed_notify_date:e.target.value}))}
-                    min={new Date().toISOString().split("T")[0]}
-                    type='date'
-                  />
-                  <button onClick={handleThird} disabled={loading} className='bg-black rounded-md'>
-                    <span className={`bg-[#a78bfa] block px-6 py-3 -translate-x-1 -translate-y-1 border-black border-2 rounded-md font-bold text-white transition-all ${
+                  <button onClick={()=>handleFirst(firstData?.interval??"")} disabled={loading} className='bg-[#1a1a1a]'>
+                    <span className={`bg-[#c8624a] block px-6 py-3 -translate-x-1 -translate-y-1 border-[#1a1a1a] border-[3px] font-black text-white uppercase tracking-wider text-[11px] transition-all ${
                       loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
                     }`}>
                       {loading ? (
@@ -470,10 +338,153 @@ function CustomNotification({setCustomNotification}: CustomNotificationProps) {
                   </button>
                 </div>
                 </div>
-                <div className='h-6 mt-2'>{intervalError && <p className='text-[#ff6b6b] font-medium text-sm'>{intervalError}</p>}</div>
+                <div className='h-6 mt-2'>{intervalError && <p className='text-[#c8624a] font-black text-xs uppercase tracking-wider'>{intervalError}</p>}</div>
+              </div>
+            ) : check==='second' ? (
+              <div className='bg-[#faf6ef] border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-6 sm:p-8'>
+                <h2 className='text-[28px] font-black uppercase leading-tight text-[#1a1a1a] mb-1' style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}>Daily Repeating Notifications</h2>
+                <p className='text-xs font-medium mb-4 text-[#1a1a1a]/50'>Pick a time — you'll be notified every day at this time</p>
+                <div className='flex flex-col gap-3'>
+                  <input
+                    className='w-full px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#4a7c9e] bg-white'
+                    onChange={(e)=>setSecondData((prev)=>({...prev, title:e.target.value}))}
+                    type='text'
+                    placeholder='Notification title'
+                  />
+                  <div>
+                    <p className='mb-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/60'>Timezone</p>
+                    <div className='border-[3px] border-[#1a1a1a] bg-white'>
+                      <TimezoneSelect
+                        value={secondData.timezone}
+                        onChange={(e) =>
+                          setSecondData((prev) => ({
+                            ...prev,
+                            timezone: e.value
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                <div className='flex flex-col sm:flex-row gap-3'>
+                  <input
+                    className='flex-1 px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#4a7c9e] bg-white'
+                    onChange={(e)=>setSecondData((prev)=>({...prev, fixed_notify_time:e.target.value}))}
+                    type='time'
+                  />
+                  <button onClick={handleSecond} disabled={loading} className='bg-[#1a1a1a]'>
+                    <span className={`bg-[#4a7c9e] block px-6 py-3 -translate-x-1 -translate-y-1 border-[#1a1a1a] border-[3px] font-black text-white uppercase tracking-wider text-[11px] transition-all ${
+                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
+                    }`}>
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="h-5 w-5 animate-spin text-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Confirm'
+                      )}
+                    </span>
+                  </button>
+                </div>
+                </div>
+                <div className='h-6 mt-2'>{intervalError && <p className='text-[#c8624a] font-black text-xs uppercase tracking-wider'>{intervalError}</p>}</div>
+              </div>
+            ) : (
+              <div className='bg-[#faf6ef] border-[3px] border-[#1a1a1a] shadow-[5px_5px_0_#1a1a1a] p-6 sm:p-8'>
+                <h2 className='text-[28px] font-black uppercase leading-tight text-[#1a1a1a] mb-1' style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}>One-Time Notification</h2>
+                <p className='text-xs font-medium mb-4 text-[#1a1a1a]/50'>Pick a date and time — you'll be notified exactly once</p>
+                <div className='flex flex-col gap-3'>
+                  <input
+                    className='w-full px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a843] bg-white'
+                    onChange={(e)=>setThirdData((prev)=>({...prev, title:e.target.value}))}
+                    type='text'
+                    placeholder='Notification title'
+                  />
+                  <div>
+                    <p className='mb-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/60'>Timezone</p>
+                    <div className='border-[3px] border-[#1a1a1a] bg-white'>
+                      <TimezoneSelect
+                        value={thirdData.timezone}
+                        onChange={(e) =>
+                          setThirdData((prev) => ({
+                            ...prev,
+                            timezone: e.value
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                <div className='flex flex-col sm:flex-row gap-3'>
+                  <input
+                    className='flex-1 px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a843] bg-white'
+                    onChange={(e)=>setThirdData((prev)=>({...prev,fixed_notify_time:e.target.value}))}
+                    type='time'
+                  />
+                  <input
+                    className='flex-1 px-4 py-3 border-[3px] border-[#1a1a1a] font-medium focus:outline-none focus:ring-2 focus:ring-[#d4a843] bg-white'
+                    onChange={(e)=>setThirdData((prev)=>({...prev,fixed_notify_date:e.target.value}))}
+                    min={new Date().toISOString().split("T")[0]}
+                    type='date'
+                  />
+                  <button onClick={handleThird} disabled={loading} className='bg-[#1a1a1a]'>
+                    <span className={`bg-[#d4a843] block px-6 py-3 -translate-x-1 -translate-y-1 border-[#1a1a1a] border-[3px] font-black text-white uppercase tracking-wider text-[11px] transition-all ${
+                      loading ? 'cursor-not-allowed opacity-70' : 'hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0'
+                    }`}>
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg
+                            className="h-5 w-5 animate-spin text-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        'Confirm'
+                      )}
+                    </span>
+                  </button>
+                </div>
+                </div>
+                <div className='h-6 mt-2'>{intervalError && <p className='text-[#c8624a] font-black text-xs uppercase tracking-wider'>{intervalError}</p>}</div>
               </div>
             )}
         </div>
+    </div>
     </div>
   )
 }

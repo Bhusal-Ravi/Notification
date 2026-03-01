@@ -340,9 +340,12 @@ export const qotdMessages= [ "Have a calm and focused day ahead ☀️",
 
 
 
-export function dailyStreakHtmlProvider ({item}){
+export function dailyStreakHtmlProvider (item){
+   console.log("dailyStreak",item) 
   const {current_streak,longest_streak,last_completed_date,taskname}= item
-    return (`
+   
+          
+  return (`
 <!-- Task Card Start -->
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
   <tr>
@@ -406,8 +409,10 @@ export function dailyStreakHtmlProvider ({item}){
 `)
 }
 
-export function dailyCompletionStreakHtmlProvider({item}){
+export function dailyCompletionStreakHtmlProvider(item){
+  console.log("dailyCompletion",item) 
   const {taskname,completed_count,sent_count}=item
+  
   return (`
 <!-- Daily Completion Card Start -->
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">

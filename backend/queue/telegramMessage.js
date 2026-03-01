@@ -56,7 +56,7 @@ const telegramWorker = new Worker(
         }
 
         if(taskpriority==='usercreated'){
-            console.log("Came here")
+            console.log("Came here userid", taskuserid)
              const reminderTemplates=customTaskReminder({
                                                     fname,
                                                     lname,
@@ -422,7 +422,7 @@ export async function customType1 (){
                                         extract (day from now()-tu.last_user_activity)  as days,
                                         extract ( hour from now()-tu.last_user_activity)  as hours,
                                         extract ( minute from now()-tu.last_user_activity)  as minutes,
-                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.taskpriority,tt.notification_type,tt.completed  from userInfo u
+                                        tt.taskid,u.fname,u.userid,u.lname,t.chat_id,tt.taskname,tt.taskpriority,tt.notification_type,tt.completed,tu.taskuserid from userInfo u
                                          join telegramusers t
                                          on t.userid=u.userid
                                          join taskuser tu

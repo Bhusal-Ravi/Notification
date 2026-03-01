@@ -18,12 +18,14 @@ const gmailWorker= new Worker('gmail',async job=>{
         day: 'numeric'
     })
     const dailyStreakHtml= dailyStreak.map((item)=>(
-          dailyStreakHtmlProvider(item)
+                   
+      dailyStreakHtmlProvider(item)
     )).join('')
 
 
 
     const dailyCompletionHtml= dailyCompletion.map((item)=>(
+                 
         dailyCompletionStreakHtmlProvider(item)
     )).join('')
 
@@ -112,6 +114,7 @@ const mailOptions = {
                         let waterCount=0
                         let exerciseCount=0
                         let studyCount=0
+                        console.log("gmail message",users.rows)
              for(const user of users.rows){
                           const dailyStreak= await client.query(`  select  ts.current_streak,ts.taskuser_id,ts.longest_streak,ts.last_completed_date::text ,t.taskname,t.taskpriority
                                                 from task_streak ts join taskuser tu on tu.taskuserid=ts.taskuser_id
@@ -127,9 +130,9 @@ const mailOptions = {
                                                     join  task t on tu.taskid=t.taskid 
                                                         where tu.userid=$1
                                                     and tu.isactive=true
-                                                    and ta.performed_at::date= (now() at time zone tu.timezone)::date
+                                                    and ta.performed_at::date= (now() at time zone tu.timezone)::date - interval '1 day'
                                                     group by  t.taskname,ta.taskuser_id`,[user.userid,])
-
+                          
                        gmailQueue.add('MidNight Report ',{
                            dailyStreak: dailyStreak.rows,
                            dailyCompletion: dailyCompletion.rows,

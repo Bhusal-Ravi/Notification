@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Update from './ui/Update'
 import TelegramStatus from './ui/TelegramStatus'
-import { RefreshCcw, Zap, Globe, Timer, Calendar } from 'lucide-react'
+import { RefreshCcw, Zap, Globe, Timer, Calendar, AlertCircle, CheckCircle } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { authClient } from '../../lib/auth-client'
 
 /**
@@ -100,6 +102,16 @@ function App() {
   const [loadinginfo, setLoadingInfo] = useState(false)
   const [loadingstreak, setLoadingStreak] = useState(false)
   const [hasInitialized, setHasInitialized] = useState(false)
+  const [statusCards, setStatusCards] = useState<{ id: number; text: string; variant: 'success' | 'error' }[]>([])
+  const messageIdRef = useRef(0)
+  const timeoutsRef = useRef<number[]>([])
+
+  const showStatusCard = (text: string, variant: 'success' | 'error' = 'success') => {
+    const id = messageIdRef.current++
+    setStatusCards(prev => [...prev, { id, text, variant }])
+    const tid = window.setTimeout(() => setStatusCards(prev => prev.filter(c => c.id !== id)), 2800)
+    timeoutsRef.current.push(tid)
+  }
 
   const totalActiveTasks = userinfo.length
   const uniqueTimezones = new Set(userinfo.map((t) => t.timezone)).size
@@ -222,6 +234,37 @@ function App() {
         .card-lift:hover  { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 var(--ink) !important; }
         .card-lift:active { transform: translate(1px,1px);   box-shadow: 2px 2px 0 var(--ink) !important; }
       `}</style>
+
+      {/* Toast stack — portaled to body */}
+      {createPortal(
+        <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+          <AnimatePresence>
+            {statusCards.map(card => (
+              <motion.div
+                key={card.id}
+                initial={{ opacity: 0, x: 120 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 120 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+                className="pointer-events-auto border-[3px] border-[#1a1a1a] px-5 py-3 shadow-[6px_6px_0_#1a1a1a] text-[11px] font-black uppercase tracking-wider flex gap-2 items-center"
+                style={{
+                  backgroundColor: card.variant === 'success' ? '#f0d5cf' : '#fdf0ee',
+                  color: '#1a1a1a',
+                  borderLeftColor: '#c8624a',
+                  borderLeftWidth: 6,
+                }}
+              >
+                {card.variant === 'error'
+                  ? <AlertCircle size={14} style={{ color: '#c8624a' }} />
+                  : <CheckCircle size={14} style={{ color: '#c8624a' }} />
+                }
+                {card.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>,
+        document.body
+      )}
 
       <div className="min-h-screen w-full">
 
@@ -629,7 +672,7 @@ function App() {
           {/* 
               UPDATE SETTINGS
            */}
-          <section className="fade-up delay-4 border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[10px_10px_0_#1a1a1a] overflow-hidden">
+          <section className="fade-up delay-4 border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[10px_10px_0_#1a1a1a] ">
             <div className="h-[7px] border-b-[3px] border-[#1a1a1a]" style={{ backgroundColor: '#d4a843' }} />
             <div className="px-6 sm:px-10 py-8">
               <div className="mb-8 space-y-3">
@@ -646,7 +689,7 @@ function App() {
                   Update<br />Settings
                 </h2>
               </div>
-              <Update userid={userid} />
+              <Update userid={userid} showStatusCard={showStatusCard} />
             </div>
           </section>
 
