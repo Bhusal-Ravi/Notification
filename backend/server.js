@@ -1,17 +1,18 @@
 import express from 'express'
 import cors from 'cors'
 import dns from 'dns'
+import http from 'http'
 import https from 'https'
 import fs from 'fs'
 import path from 'path'
 import { connection } from './config/redisConnection.js'
 import './services/gmail.js'
 
+import { Server } from "socket.io";
 import dotenv from 'dotenv'
 import { dbConnect } from './config/dbConnection.js'
 import healthcheckRoute from './routes/healthcheck.js'
 import { Queue, Worker } from 'bullmq'
-
 import { enqueueWaterMessage,enqueueExerciseMessage, customType1, customType2, customType3 } from './queue/telegramMessage.js'
 import { enqueueMindNightReport } from './queue/gmailMessages.js';
 import './services/telegram.js'
@@ -245,18 +246,34 @@ app.use('/api',customnotificationRoute)
 app.use('/api',telegramverifyRoute)
 const currentDir= path.dirname(fileURLToPath(import.meta.url))
 
-const sslServer= https.createServer({
-    key:fs.readFileSync(path.join(currentDir,'cert','key.pem')),
-    cert:fs.readFileSync(path.join(currentDir,'cert','cert.pem'))
-},app)
+let httpServer
 
-if(serverState==='local' ){
-    sslServer.listen(port,async (req,res)=>{
-        console.log(`Server started on PORT using ssl certificate HTTPS: ${port}`)
-    })
-}else {
-    app.listen(port, async(req,res)=>{
-    console.log(`Server started on PORT http: ${port}`)
+httpServer = serverState === 'local'
+  ? https.createServer({
+      key: fs.readFileSync(path.join(currentDir, 'cert', 'key.pem')),
+      cert: fs.readFileSync(path.join(currentDir, 'cert', 'cert.pem'))
+    }, app)
+  : http.createServer(app)
+
+// const sslServer= https.createServer({
+//     key:fs.readFileSync(path.join(currentDir,'cert','key.pem')),
+//     cert:fs.readFileSync(path.join(currentDir,'cert','cert.pem'))
+// },app)
+
+
+
+export const io = new Server(httpServer, {
+  cors: corsOptions
 })
-}
+
+// Register socket handlers after io is created
+import { registerSocketHandlers } from './websocket/socket.js'
+registerSocketHandlers(io)
+
+httpServer.listen(port, () => {
+  console.log(`Server started on port ${port}`)
+})
+
+
+
 

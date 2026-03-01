@@ -11,6 +11,8 @@ import ErrorFallback from './components/ErrorFallBack.tsx';
 import Pagenotfound from './components/ui/Pagenotfound.tsx';
 import Sessionverify from './components/Sessionverify.tsx';
 import Telegramverify from './components/Telegramverify.tsx';
+import Sidebar from './components/Sidebar.tsx';
+
 
 
 
@@ -30,6 +32,11 @@ const router = createBrowserRouter([
   {path:'*',
   element:<Pagenotfound/>
   },
+
+  {
+    path:'sidebar',
+  element:<Sidebar/>
+  }
  
  
 

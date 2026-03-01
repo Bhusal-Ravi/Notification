@@ -6,6 +6,7 @@ import { RefreshCcw, Zap, Globe, Timer, Calendar, AlertCircle, CheckCircle } fro
 import { AnimatePresence, motion } from 'framer-motion'
 import { authClient } from '../../lib/auth-client'
 
+
 /**
  * PALETTE — 4 intentional colors:
  *
