@@ -41,7 +41,13 @@ router.get('/userstreak/:userid',authenticateSession, async (req,res)=>{
         if(!userid){
             return res.status(400).json({message:"No userid provided"})
         }
-        const dailyStreak= await client.query(`  select  ts.current_streak,ts.taskuser_id,ts.longest_streak,ts.last_completed_date::text ,t.taskname,t.taskpriority
+        const dailyStreak= await client.query(`  select  ts.current_streak,ts.taskuser_id,ts.longest_streak,ts.last_completed_date::text ,t.taskname,t.taskpriority,
+                                                 case
+                                                    when ts.last_completed_date < (now() at time zone tu.timezone)::date - interval '1 day'
+                                                        then 'inactive'
+                                                    else 'active'
+                                                end as streak_status
+                                                
                                                 from task_streak ts join taskuser tu on tu.taskuserid=ts.taskuser_id
                                                 join  task t on tu.taskid=t.taskid
                                                 where tu.userid=$1
@@ -58,7 +64,8 @@ router.get('/userstreak/:userid',authenticateSession, async (req,res)=>{
                                                     and ta.performed_at::date= (now() at time zone tu.timezone)::date
                                                     group by  t.taskname,ta.taskuser_id`,[userid,])
 
-        
+    
+
     res.status(200).json({message:"Found Streak Data",dailyStreak:dailyStreak.rows,dailyCompletion:dailyCompletion.rows})
     
     }catch(error){

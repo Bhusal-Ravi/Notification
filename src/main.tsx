@@ -33,10 +33,7 @@ const router = createBrowserRouter([
   element:<Pagenotfound/>
   },
 
-  {
-    path:'sidebar',
-  element:<Sidebar/>
-  }
+  
  
  
 

@@ -1,8 +1,10 @@
 import  { useEffect, useState } from 'react'
-import { GitFork  } from 'lucide-react';
+import { GitFork, Sidebar } from 'lucide-react';
 import Login from '../Login';
 import { authClient } from '../../../lib/auth-client';
 import { useNavigate } from 'react-router-dom';
+import socket from '../socket';
+
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
@@ -15,13 +17,19 @@ type Data= {
 
 }
 
+interface NavbarProps {
+  sidebar: boolean;
+  setSidebar: (value: boolean) => void;
+  setClearSidebar:(value:boolean)=>void
+  clearSidebar:boolean
+}
 
-function Navbar() {
+function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProps) {
 
      const [data,setData]= useState<Data>()
      const [showLogout, setShowLogout] = useState(false)
      const [imgError, setImgError] = useState(false)
-    const { data: session } = authClient.useSession()
+    const { data: session,isPending } = authClient.useSession()
     const navigate = useNavigate()
 
    
@@ -64,8 +72,19 @@ function Navbar() {
   return (
 
     <nav className="fixed px-10 py-5 justify-center     top-0 border-b-3 md:border-b-4 border-t-red-500 z-20 flex  w-full items-center bg-white ">
+     
       <div className='md:max-w-7xl  w-full flex justify-center items-center'>
-      <div className='mr-auto'>
+      <div className='mr-auto flex flex-row justify-center items-center gap-5'>
+        <div className='bg-black rounded-md'>
+   {session && ( 
+    <button
+        onClick={() => setSidebar(!sidebar)}
+        className='bg-[#ffff00] flex items-center justify-center px-2 py-1 -translate-x-1 -translate-y-1 border-black border-2 rounded-md hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer'
+    >
+        <Sidebar strokeWidth={1.5} size={22}/>
+    </button>)
+}
+</div>
          <button onClick={()=>navigate('/')} className='bg-black rounded-md'>
             <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2
     active:translate-x-0 active:translate-y-0 transition-all'>
@@ -80,7 +99,9 @@ function Navbar() {
                <a href='https://github.com/Bhusal-Ravi/Notification'  target="_blank"  className='flex flex-row justify-center items-center'><GitFork strokeWidth={1.5}/> <p className='font-semibold'>Fork</p></a> 
             </span>
         </button>
-      { !session ?   (
+      {isPending? (<span className=' border-[3px] border-black  mr-3 text-black text-lg flex items-center justify-center p-2  font-black'>
+           Loading
+         </span>): !session ?   (
     <Login/>
   )
   :(
@@ -101,6 +122,9 @@ function Navbar() {
           <div className='bg-black rounded-md'>
             <button
               onClick={async () => {
+                setSidebar(false)
+                socket.off("activity:new")
+                setClearSidebar(!clearSidebar)
                 await authClient.signOut()
                 setShowLogout(false)
                 navigate('/')

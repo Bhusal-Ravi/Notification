@@ -38,6 +38,7 @@ type DailyStreak ={
   last_completed_date:string
   taskname:string
   taskpriority:string
+  streak_status:string
 }
 
 type DailyCompletion= {
@@ -510,9 +511,13 @@ function App() {
                       <div className="absolute top-0 right-0 w-0 h-0 border-t-[24px] border-r-[24px] border-t-[#1a1a1a] border-r-transparent opacity-20" />
                       
                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1a1a1a] mb-2">ACTIVE</p>
-                      <p className="text-[64px] font-black leading-none text-[#1a1a1a]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                      {item.streak_status==='inactive'?
+                      (<p className="text-[64px] font-black leading-none text-[#1a1a1a]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+                        0
+                      </p>):
+                      (<p className="text-[64px] font-black leading-none text-[#1a1a1a]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
                         {item.current_streak}
-                      </p>
+                      </p>)}
                       <div className="flex items-center justify-center gap-2 mt-2">
                         <div className="h-[2px] w-8 bg-[#1a1a1a]" />
                         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#1a1a1a]">DAYS</p>

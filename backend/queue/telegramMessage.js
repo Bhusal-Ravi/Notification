@@ -6,6 +6,7 @@ import { bot } from "../services/telegram.js"
 import { customTaskReminder, exerciseReminders, waterReminders } from "../services/messages.js"
 import { connection } from "../config/redisConnection.js"
 import { nanoid } from 'nanoid';
+import { io } from "../server.js"
 
 
 
@@ -104,7 +105,7 @@ const telegramWorker = new Worker(
 telegramWorker.on('completed',async  job => {
     const client= await pool.connect()
     try {
-        const { userid,taskid,notification_type,taskuserid  } = job.data
+        const { userid,taskid,notification_type,taskuserid,taskname  } = job.data
 
         if(notification_type==='third'){
             const completeUpdate= await client.query(`update task
@@ -125,10 +126,12 @@ telegramWorker.on('completed',async  job => {
             console.log(`Last check updated for userid:${userid} and taskid:${taskid}`)
         }
     }
-        await client.query(`insert into taskactivity (taskuser_id,event_type)
-                             values($1,$2)`,[taskuserid,'sent'])
+       const performed_at= await client.query(`insert into taskactivity (taskuser_id,event_type)
+                             values($1,$2)
+                             
+                             `,[taskuserid,'sent'])
 
-
+        io.to(`user:${userid}`).emit("activity:new",{event_type:"sent",taskname:taskname})
         console.log(`Telegram Job Complete: ${job.name} (${job.id})`)
     } catch (error) {
         console.error('Failed to finalize Telegram job', error)
@@ -160,13 +163,15 @@ bot.on('callback_query', async  (query)=>{
                                                     values 
                                                     (now(),$1,$2,$3)`,[taskuserid,'completed',buttonId])
 
-        const timezoneResult= await client.query(`select timezone from taskuser where taskuserid=$1`,[taskuserid])
+        const timezoneResult= await client.query(`select tu.timezone,tu.userid,t.taskname from taskuser tu join task t on t.taskid=tu.taskid where taskuserid=$1`,[taskuserid])
          
         if (timezoneResult.rowCount === 0) {
             throw new Error('Timezone not found for taskuser');
             }
 
         const timezone = timezoneResult.rows[0].timezone;
+        const userid= timezoneResult.rows[0].userid;
+         const taskname= timezoneResult.rows[0].taskname;
 
         const task_streak= await client.query(`insert into task_streak (taskuser_id,current_streak,longest_streak,last_completed_date)
                                                 values ($1,1,1,(now() at time zone $2)::date)
@@ -208,7 +213,8 @@ bot.on('callback_query', async  (query)=>{
                                                 
                                                 `,[taskuserid,timezone])       
         await client.query('update taskuser set last_user_activity=now() where taskuserid=$1',[taskuserid])                                     
-        await client.query('commit')                                          
+        await client.query('commit')     
+        io.to(`user:${userid}`).emit("activity:new",{event_type:"completed",taskname:taskname})                                 
         await bot.answerCallbackQuery(query.id, {
     text: "Task marked as completed ✅",
     show_alert: true
