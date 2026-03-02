@@ -8,8 +8,7 @@
 <img width="100" height="100" alt="Resend" src="https://github.com/user-attachments/assets/f9df0ec1-b4f2-403b-b0b4-7a78a01f6ab1" />
 <img width="100" height="100" alt="Node.js" src="https://github.com/user-attachments/assets/8cb85ad4-9a5f-4210-89f9-e49d41527bd5" />
 <img width="100" height="100" alt="React.js" src="https://github.com/user-attachments/assets/aa3a7f84-e907-43c1-b44d-9239c0581049" />
-<img width="100" height="100" alt="Socket.io" src="https://github.com/user-attachments/assets/5b24650b-f8a7-44e3-b7d9-a61b1f432c9e" />
-
+<img width="100" height="100" alt="Socket.io" src="https://github.com/user-attachments/assets/f999ee04-c101-44e2-8bcc-41f478b87efb" />
 
 
 Multi-channel notification system that helps users stay on top of hydration, workouts, study blocks, quotes of the day, and automated midnight summaries. The platform blends a Telegram bot, Resend-powered email reports, a BullMQ scheduling layer, and a React dashboard so users can inspect and tune their notification cadences.
