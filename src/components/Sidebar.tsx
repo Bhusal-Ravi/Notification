@@ -3,11 +3,17 @@ import './socket.js'
 import socket from './socket.ts'
 import { AnimatePresence, motion } from "motion/react"
 
-type ActivityType={
+
+interface ActivityType {
     performed_at:string,
     event_type:string,
     taskname:string
 }
+
+type ResponseType={
+    data: ActivityType[],
+    message:string
+}   
 
 interface NavbarProps {
 
@@ -23,8 +29,15 @@ function Sidebar({clearSidebar}:NavbarProps) {
                 method:'GET',
                 credentials:'include',
             })
-            const result= await response.json()
+            const result:ResponseType= await response.json()
+            if(Array.isArray(result?.data)){
+                setActivity(result.data)
+            }else {
+                setActivity([])
+            }
+            
             setActivity(result.data)
+            console.log(result)
         }catch(error){
             console.log(error)
         }
@@ -82,7 +95,7 @@ function Sidebar({clearSidebar}:NavbarProps) {
             <div className='grid grid-cols-2 border-b-[3px] border-black'>
                 <div className='p-3 border-r-[2px] border-black'>
                     <p className='text-[9px] tracking-widest text-gray-500 uppercase'>Total Events</p>
-                    <p className='text-2xl font-black text-black'>{activity.length>0?String(activity?.length).padStart(2,'0'):"Empty"}</p>
+                    <p className='text-2xl font-black text-black'>{activity?.length>0?String(activity?.length).padStart(2,'0'):"Empty"}</p>
                 </div>
                 <div className='p-3'>
                     <p className='text-[9px] tracking-widest text-gray-500 uppercase'>Status</p>
@@ -93,9 +106,9 @@ function Sidebar({clearSidebar}:NavbarProps) {
             {/* Activity list */}
             <div className='p-3 flex flex-col gap-3'>
                 <AnimatePresence>
-                    {activity?.length>0 ? ( activity.map((item) => (
+                    {activity?.length>0 ? ( activity?.map((item) => (
                         <motion.div
-                            key={item.performed_at}
+                            key={item.performed_at + item.taskname}
                             initial={{ opacity: 0, y: -20, x: -100 }}
                             animate={{ opacity: 1, y: 0, x: 0 }}
                             exit={{ opacity: 0, y: -20, x: -100 }}
