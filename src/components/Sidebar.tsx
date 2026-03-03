@@ -61,10 +61,10 @@ function Sidebar({clearSidebar}:NavbarProps) {
         whileInView={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
         viewport={{ once: false }}
-        className='flex fixed z-50 top-[64px] left-0 w-[320px] overflow-y-auto items-start bg-[#f5f0e8] border-r-[3px] border-black'
+        className='flex fixed z-50 top-[64px]  left-0 w-[320px] overflow-y-auto items-start mt-[30px] pb-[50px] bg-[#f5f0e8] border-r-[3px] border-black'
         style={{ height: 'calc(100vh - 64px)' }}
     >
-        <div className='w-full flex flex-col'>
+        <div className='w-full flex flex-col '>
 
             {/* Header */}
             <div className='border-b-[3px] border-black p-4'>
@@ -82,7 +82,7 @@ function Sidebar({clearSidebar}:NavbarProps) {
             <div className='grid grid-cols-2 border-b-[3px] border-black'>
                 <div className='p-3 border-r-[2px] border-black'>
                     <p className='text-[9px] tracking-widest text-gray-500 uppercase'>Total Events</p>
-                    <p className='text-2xl font-black text-black'>{String(activity?.length).padStart(2,'0')}</p>
+                    <p className='text-2xl font-black text-black'>{activity.length>0?String(activity?.length).padStart(2,'0'):"Empty"}</p>
                 </div>
                 <div className='p-3'>
                     <p className='text-[9px] tracking-widest text-gray-500 uppercase'>Status</p>
@@ -132,8 +132,9 @@ function Sidebar({clearSidebar}:NavbarProps) {
                                 </span>
                             </div>
                         </motion.div>
-                    ))):(<div><p>No logs available currently</p><br/>
+                    ))):(<div><p>No logs available currently</p>
                                 <p>Make sure you are logged in</p>
+                                <p>Mkae sure you have subscribed to at least one notification</p>
                     </div>)}
                 </AnimatePresence>
             </div>
