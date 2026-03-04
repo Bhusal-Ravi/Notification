@@ -11,6 +11,7 @@ import ErrorFallback from './components/ErrorFallBack.tsx';
 import Pagenotfound from './components/ui/Pagenotfound.tsx';
 import Sessionverify from './components/Sessionverify.tsx';
 import Telegramverify from './components/Telegramverify.tsx';
+import Dashboard from './components/Dashboard.tsx';
 
 
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: 'main', element:<Welcome><App /></Welcome> },
       { path: 'welcome', element: <Welcome><App /></Welcome> },
        {path:'telegramverify',element:<Sessionverify><Telegramverify/></Sessionverify>},
+       {path:'dashboard',element:<Sessionverify><Dashboard/></Sessionverify>},
     ],
   },
   {path:'*',
