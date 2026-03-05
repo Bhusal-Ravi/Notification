@@ -1,5 +1,5 @@
 import  { useEffect, useState } from 'react'
-import { GitFork, Sidebar } from 'lucide-react';
+import { GitFork, LayoutDashboard, Sidebar } from 'lucide-react';
 import Login from '../Login';
 import { authClient } from '../../../lib/auth-client';
 import { useNavigate } from 'react-router-dom';
@@ -85,6 +85,8 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
     </button>)
 }
 </div>
+
+    
          <button onClick={()=>navigate('/')} className='bg-black rounded-md'>
             <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2
     active:translate-x-0 active:translate-y-0 transition-all'>
@@ -93,12 +95,19 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
         </button>
       </div>
       <div className='ml-auto flex flex-row justify-center items-center'>
+       
        <button className='bg-black rounded-md mr-2'>
             <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
     active:translate-x-0 active:translate-y-0 transition-all'>
                <a href='https://github.com/Bhusal-Ravi/Notification'  target="_blank"  className='flex flex-row justify-center items-center'><GitFork strokeWidth={1.5}/> <p className='font-semibold'>Fork</p></a> 
             </span>
         </button>
+      <button onClick={()=>navigate('/dashboard')} className='bg-black rounded-md mr-2'>
+            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
+    active:translate-x-0 active:translate-y-0 transition-all'>
+               <p    className='flex flex-row cursor-pointer justify-center items-center'><LayoutDashboard strokeWidth={1.5}/> <p className='font-semibold'>Dashboard</p></p> 
+            </span>
+        </button>  
       {isPending? (<span className=' border-[3px] border-black  mr-3 text-black text-lg flex items-center justify-center p-2  font-black'>
            Loading
          </span>): !session ?   (

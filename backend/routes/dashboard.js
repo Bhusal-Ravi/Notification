@@ -40,7 +40,7 @@ router.get('/dashboard',authenticateSession, limiter, async (req,res)=>{
 
     // -- Total notification sent vs completed data (Monthly) taskwise grouped by day is active
         const taskWise= await client.query (`select 
-                                            to_char(date_trunc('day', ta.performed_at), 'DD' ) AS "day",
+                                            to_char(date_trunc('day', ta.performed_at), 'D' )::int AS "day",
                                             ta.taskuser_id,
                                             t.taskname,
                                             t.notification_type,
@@ -49,11 +49,11 @@ router.get('/dashboard',authenticateSession, limiter, async (req,res)=>{
                                             from taskactivity ta join taskuser tu on  tu.taskuserid=ta.taskuser_id
                                             join task t on t.taskid= tu.taskid
                                             where tu.userid=$1 
-                                            and  isactive=$2
+                                            
                                             and date_trunc('month',ta.performed_at)=date_trunc('month',now())
                                             GROUP BY 
                                             date_trunc('day', ta.performed_at)
-                                            ,ta.taskuser_id ,t.taskname, t.notification_type`,[id,true])
+                                            ,ta.taskuser_id ,t.taskname, t.notification_type`,[id])
 
 
 

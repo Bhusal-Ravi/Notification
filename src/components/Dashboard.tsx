@@ -1,6 +1,9 @@
 import  { useEffect, useState } from 'react'
 import TotalTask from './ui/graph/TotalTask'
 import TotalSent from './ui/graph/TotalSent'
+import TaskWise from './ui/graph/TaskWise'
+import LoadingScreen from './ui/Loading'
+
 
 interface TotalTaskType {
     notification_type:string,
@@ -26,8 +29,11 @@ function Dashboard() {
     const [totalTask,setTotalTask]= useState<TotalTaskType[]>([])
     const [totalSent,setTotalSent]= useState<TotalSentType[]>([])
     const [taskWise,setTaskWise]= useState<TaskWiseType[]>([])
+    const [loading,setLoading] = useState(false)
     async function fetchDashBoardDate(){
+        
         try{
+            setLoading(true)
             const response= await fetch(`${API_BASE_URL}/api/dashboard`,{
                 method:"GET",
                 credentials:'include'
@@ -46,6 +52,8 @@ function Dashboard() {
            
         }catch(error){
             console.log(error)
+        }finally{
+            setLoading(false)
         }
     }
 
@@ -53,11 +61,23 @@ function Dashboard() {
         fetchDashBoardDate()
     },[])
 
-  return (
-    <div className='mt-20'>
-        <TotalTask totalTask={totalTask}/>
-        <TotalSent totalSent={totalSent} />
-    
+    if (loading) return <LoadingScreen/>
+    return  (
+    <div className='w-full max-w-7xl mx-auto px-4 py-12'>
+        <div className='mb-12 border-b-[3px] border-[#1a1a1a] pb-8'>
+          <h1 className='text-5xl font-black text-[#1a1a1a] uppercase tracking-tight'>Dashboard Analytics</h1>
+        </div>
+        
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12'>
+            <TotalTask totalTask={totalTask}/>
+            <TotalSent totalSent={totalSent} />
+        </div>
+        
+        <div className="">
+            <h1 className="text-xl font-bold">Individual Task Statistics For Current Month</h1>
+            <TaskWise taskWise={taskWise}/>
+        </div>
+        
     </div>
   )
 }
