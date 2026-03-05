@@ -1,5 +1,5 @@
 import  { useEffect, useState } from 'react'
-import { GitFork, LayoutDashboard, Sidebar } from 'lucide-react';
+import { GitFork, LayoutDashboard, Sidebar, Menu, Settings, X } from 'lucide-react';
 import Login from '../Login';
 import { authClient } from '../../../lib/auth-client';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
 
      const [data,setData]= useState<Data>()
      const [showLogout, setShowLogout] = useState(false)
+     const [showMobileMenu, setShowMobileMenu] = useState(false)
      const [imgError, setImgError] = useState(false)
     const { data: session,isPending } = authClient.useSession()
     const navigate = useNavigate()
@@ -71,10 +72,12 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
    },[session])
   return (
 
-    <nav className="fixed px-10 py-5 justify-center     top-0 border-b-3 md:border-b-4 border-t-red-500 z-20 flex  w-full items-center bg-white ">
+    <nav className="fixed px-4 md:px-10 py-4 md:py-5 justify-center top-0 border-b-3 md:border-b-4 border-t-red-500 z-20 flex w-full items-center bg-white">
      
-      <div className='md:max-w-7xl  w-full flex justify-center items-center'>
-      <div className='mr-auto flex flex-row justify-center items-center gap-5'>
+      <div className='md:max-w-7xl w-full flex justify-between md:justify-center items-center gap-4'>
+      
+      {/* Left Section - Sidebar and Logo */}
+      <div className='flex flex-row justify-center items-center gap-3 md:gap-5'>
         <div className='bg-black rounded-md'>
    {session && ( 
     <button
@@ -87,28 +90,36 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
 </div>
 
     
-         <button onClick={()=>navigate('/')} className='bg-black rounded-md'>
-            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2
-    active:translate-x-0 active:translate-y-0 transition-all'>
-               <p className='font-bold text-xl'>N</p>
+         <button onClick={()=>navigate('/')} className='bg-black rounded-md hidden md:block'>
+            <span className=' bg-[#ffff00] block px-3 md:px-4 py-2 md:py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+               <p className='font-bold text-lg md:text-xl'>N</p>
+            </span>
+        </button>
+
+        {/* Mobile: Circular Icon Button */}
+        <button onClick={()=>navigate('/')} className='bg-black rounded-full md:hidden'>
+            <span className='bg-[#ffff00] flex items-center justify-center w-10 h-10 -translate-x-1 -translate-y-1 border-black border-2 rounded-full text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+               <p className='font-bold text-lg'>N</p>
             </span>
         </button>
       </div>
-      <div className='ml-auto flex flex-row justify-center items-center'>
+
+      {/* Right Section - Desktop Menu */}
+      <div className='hidden md:flex flex-row justify-center items-center gap-2 md:gap-4 ml-auto'>
        
-       <button className='bg-black rounded-md mr-2'>
-            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
-    active:translate-x-0 active:translate-y-0 transition-all'>
-               <a href='https://github.com/Bhusal-Ravi/Notification'  target="_blank"  className='flex flex-row justify-center items-center'><GitFork strokeWidth={1.5}/> <p className='font-semibold'>Fork</p></a> 
+       <button className='bg-black rounded-md'>
+            <span className=' bg-[#ffff00] block px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+               <a href='https://github.com/Bhusal-Ravi/Notification' target="_blank" className='flex flex-row justify-center items-center gap-2'><GitFork strokeWidth={1.5} size={18}/> <p className='font-semibold text-sm'>Fork</p></a> 
             </span>
         </button>
-      <button onClick={()=>navigate('/dashboard')} className='bg-black rounded-md mr-2'>
-            <span className=' bg-[#ffff00] block  px-2 py-1 -translate-x-1  -translate-y-1  border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 
-    active:translate-x-0 active:translate-y-0 transition-all'>
-               <p    className='flex flex-row cursor-pointer justify-center items-center'><LayoutDashboard strokeWidth={1.5}/> <p className='font-semibold'>Dashboard</p></p> 
+
+     {(!isPending && session) && (<button onClick={()=>navigate('/dashboard')} className='bg-black rounded-md'>
+            <span className=' bg-[#ffff00] block px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+               <p className='flex flex-row cursor-pointer justify-center items-center gap-2'><LayoutDashboard strokeWidth={1.5} size={18}/> <span className='font-semibold text-sm'>Dashboard</span></p> 
             </span>
-        </button>  
-      {isPending? (<span className=' border-[3px] border-black  mr-3 text-black text-lg flex items-center justify-center p-2  font-black'>
+        </button> )} 
+
+      {isPending? (<span className=' border-[3px] border-black text-black text-lg flex items-center justify-center px-3 py-2 font-black'>
            Loading
          </span>): !session ?   (
     <Login/>
@@ -124,7 +135,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
            {session?.user?.name?.charAt(0)?.toUpperCase() || session?.user?.email?.charAt(0)?.toUpperCase()}
          </span>
        )}
-       <p>{data?.fname} {data?.lname}</p> 
+       <p className='text-sm'>{data?.fname} {data?.lname}</p> 
       </span>
       {showLogout && (
         <div className='absolute top-full left-0 w-full mt-2 z-50'>
@@ -147,8 +158,70 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
       )}
     </div>)
 }
-      
-       
+      </div>
+
+      {/* Mobile: Hamburger Menu Button */}
+      <div className='md:hidden relative'>
+        <button 
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          className='bg-black rounded-md'
+        >
+          <span className='bg-[#ffff00] flex items-center justify-center p-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+            {showMobileMenu ? <X strokeWidth={1.5} size={22} /> : <Menu strokeWidth={1.5} size={22} />}
+          </span>
+        </button>
+
+        {/* Mobile Menu Dropdown */}
+        {showMobileMenu && (
+          <div className='absolute top-full right-0 mt-2 z-50'>
+            <div className='bg-black rounded-md shadow-lg'>
+              <button 
+                onClick={() => {
+                  window.open('https://github.com/Bhusal-Ravi/Notification', '_blank')
+                  setShowMobileMenu(false)
+                }}
+                className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-t-md text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
+              >
+                <GitFork strokeWidth={1.5} size={18}/> Fork
+              </button>
+
+              {(!isPending && session) &&(<button 
+                onClick={() => {
+                  navigate('/dashboard')
+                  setShowMobileMenu(false)
+                }}
+                className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-l-black border-r-black border-t-black border-2 text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
+              >
+                <LayoutDashboard strokeWidth={1.5} size={18}/> Dashboard
+              </button>
+)}
+
+              {(!isPending && session) &&(<button 
+                onClick={() => setShowMobileMenu(false)}
+                className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-l-black border-r-black border-t-black border-2 text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
+              >
+                <Settings strokeWidth={1.5} size={18}/> Settings
+              </button>
+              )}
+
+              {session && (
+                <button
+                  onClick={async () => {
+                    setSidebar(false)
+                    socket.off("activity:new")
+                    setClearSidebar(!clearSidebar)
+                    await authClient.signOut()
+                    setShowMobileMenu(false)
+                    navigate('/')
+                  }}
+                  className='bg-[#ffb5bd] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-b-md text-sm font-bold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer'
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </nav>

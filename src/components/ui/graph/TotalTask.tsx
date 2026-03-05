@@ -1,4 +1,3 @@
-
 import { Pie, PieChart, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
 
 
@@ -10,73 +9,113 @@ interface TotalTaskType {
 interface TotalTaskProps {
     totalTask:TotalTaskType []
 }
+
 const COLORS = ['#c8624a', '#4a7c9e', '#d4a843'];
 
 function TotalTask({totalTask}:TotalTaskProps) {
-    console.log(totalTask)
-      const coloredData = totalTask.map((item, index) => ({
+    if (!totalTask) return null;
+    const coloredData = totalTask.map((item, index) => ({
         ...item,
         fill: COLORS[index % COLORS.length],
     }));
+
     return (
-        
-    totalTask.length>0?
-        (
-        <div>
-            <h3 className='text-xl font-black text-[#1a1a1a] mb-6 uppercase tracking-wide'>Task Distribution by Type</h3>
-        <div className='bg-[#f2ece0] border-[3px] border-[#1a1a1a] p-6 shadow-[6px_6px_0_#1a1a1a] lg:min-h-125 lg:flex lg:flex-col'>
-            <div className='flex-1'>
-            <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-      <Pie
-        
-        data={coloredData}
-        dataKey="taskcount"
-        nameKey="notification_type"
-        isAnimationActive={true}
-        cx="45%"
-        cy="50%"
-        innerRadius={80}
-        outerRadius={120}
-        paddingAngle={2}
-      >
-        {coloredData.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={entry.fill} />
-        ))}
-        </Pie>
-      <Tooltip 
-        contentStyle={{
-          backgroundColor: '#ffffff',
-          borderColor: '#c8624a',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          border: '2px solid #c8624a'
-        }}
-        labelStyle={{ color: '#1a1a1a' }}
-      />
-      <Legend />
-    </PieChart>
-            </ResponsiveContainer>
-            </div>
-    <div className='grid grid-cols-3 gap-3 mt-8 pt-8 border-t-[3px] border-[#1a1a1a]'>
-        {totalTask.map((item, index)=>(
-            <div key={item.notification_type} className='text-center p-4 bg-white border-[2.5px] shadow-[3px_3px_0_#1a1a1a]' style={{borderColor: COLORS[index]}}>
-                <div className='flex items-center justify-center gap-2 mb-2'>
-                    <div className='w-3 h-3' style={{backgroundColor: COLORS[index]}}></div>
-                    <p className='text-xs font-black uppercase tracking-wider' style={{color: COLORS[index]}}>
-                        {item.notification_type==='first'?'Frequent':item.notification_type==='second'?'Daily':item.notification_type==='third'?'One Time':''}
-                    </p>
+    totalTask.length>0 ? (
+        <div className='relative'>
+            <div className='absolute inset-0 bg-[#1a1a1a] translate-x-[8px] translate-y-[8px] -z-10' />
+
+            <div className='border-[3px] border-[#1a1a1a] bg-[#faf6ef] overflow-hidden'>
+                <div className='h-[7px] bg-[#c8624a] border-b-[3px] border-[#1a1a1a]' />
+
+                <div className='p-6'>
+                    <div className='mb-6 space-y-1'>
+                        <p className='text-[10px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/40'>Overview</p>
+                        <h3
+                            className='text-[32px] font-black uppercase leading-none text-[#1a1a1a]'
+                            style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.02em' }}
+                        >
+                            Task Distribution
+                        </h3>
+                    </div>
+
+                    <div className='border-[2px] border-[#1a1a1a] bg-white p-2 mb-6'>
+                        <ResponsiveContainer width="100%" height={260}>
+                            <PieChart>
+                                <Pie
+                                    data={coloredData}
+                                    dataKey="taskcount"
+                                    nameKey="notification_type"
+                                    isAnimationActive={true}
+                                    cx="45%"
+                                    cy="50%"
+                                    innerRadius={72}
+                                    outerRadius={112}
+                                    paddingAngle={3}
+                                >
+                                    {coloredData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} stroke='#1a1a1a' strokeWidth={2} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#ffffff',
+                                        borderColor: '#1a1a1a',
+                                        borderRadius: '0px',
+                                        border: '2.5px solid #1a1a1a',
+                                        boxShadow: '4px 4px 0 #1a1a1a',
+                                        fontFamily: 'inherit',
+                                    }}
+                                    labelStyle={{ color: '#1a1a1a', fontWeight: 900 }}
+                                />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontFamily: 'inherit',
+                                        fontSize: '10px',
+                                        fontWeight: 900,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.15em',
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className='grid grid-cols-3 gap-3 pt-5 border-t-[3px] border-[#1a1a1a]'>
+                        {totalTask.map((item, index) => (
+                            <div
+                                key={item.notification_type}
+                                className='relative group'
+                            >
+                                <div className='absolute inset-0 bg-[#1a1a1a] translate-x-[4px] translate-y-[4px] -z-10' />
+                                <div
+                                    className='border-[2.5px] border-[#1a1a1a] bg-white p-4 text-center relative z-10'
+                                >
+                                    <div className='h-[4px] mb-3 -mx-4 -mt-4 border-b-[2.5px] border-[#1a1a1a]' style={{ backgroundColor: COLORS[index] }} />
+                                    <p
+                                        className='text-[9px] font-black uppercase tracking-[0.2em] mb-2'
+                                        style={{ color: COLORS[index] }}
+                                    >
+                                        {item.notification_type==='first'?'Frequent':item.notification_type==='second'?'Daily':item.notification_type==='third'?'One Time':''}
+                                    </p>
+                                    <p
+                                        className='text-[36px] font-black leading-none text-[#1a1a1a]'
+                                        
+                                    >
+                                        {item.taskcount}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <p className='text-2xl font-black' style={{color: COLORS[index]}}>{item.taskcount}</p>
             </div>
-        ))}
-    </div>
-    </div>
-    </div>):(<div className='bg-[#f2ece0] border-[3px] border-dashed border-[#1a1a1a] p-8 text-center'>
-        <p className='text-xs font-black uppercase tracking-[0.35em] text-[#1a1a1a]/30'>No Data</p>
-        <p className='mt-3 text-lg font-black text-[#1a1a1a]/40'>No task data available</p>
-    </div>)
-  )
+        </div>
+    ) : (
+        <div className='border-[3px] border-dashed border-[#1a1a1a]/20 px-6 py-16 text-center'>
+            <p className='text-[10px] font-black uppercase tracking-[0.35em] text-[#1a1a1a]/30'>No Data</p>
+            <p className='mt-3 text-lg font-black text-[#1a1a1a]/40'>No task data available</p>
+        </div>
+    ))
 }
 
 export default TotalTask
