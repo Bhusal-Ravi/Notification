@@ -22,7 +22,7 @@ const days = [
 ];
 
 
-function TaskCard({ item, notificationType, allTasks }: { item: number, notificationType: TaskWiseType[], allTasks: TaskWiseType[] }) {
+function TaskCard({ item, notificationType }: { item: number, notificationType: TaskWiseType[], allTasks: TaskWiseType[] }) {
   const dataPartial = notificationType.filter((task) => task.taskuser_id === item)
   if (!dataPartial.length) return null;
 
