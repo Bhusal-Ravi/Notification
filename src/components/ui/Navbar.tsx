@@ -137,7 +137,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
           )}
        </div>
 
-       <div className='relative' onMouseEnter={() => setHoveredButton('home')} onMouseLeave={() => setHoveredButton(null)}>
+       {(!isPending && session) && (<div className='relative' onMouseEnter={() => setHoveredButton('home')} onMouseLeave={() => setHoveredButton(null)}>
          <button onClick={() => navigate('/main')} className='bg-black rounded-md'>
               <span className='bg-[#ffff00] flex items-center justify-center px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
                  <Home strokeWidth={1.5} size={18}/>
@@ -148,7 +148,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
               Home
             </div>
           )}
-       </div>
+       </div>)}
 
      {(!isPending && session) && (
        <div className='relative'>
@@ -246,7 +246,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
                 <GitFork strokeWidth={1.5} size={18}/> Fork
               </button>
 
-              <button
+             {(!isPending && session) && (<button
                 onClick={() => {
                   navigate('/main')
                   setShowMobileMenu(false)
@@ -254,7 +254,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
                 className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-l-black border-r-black border-t-black border-2 text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
               >
                 <Home strokeWidth={1.5} size={18}/> Home
-              </button>
+              </button>)}
 
               {(!isPending && session) &&(<button 
                 onClick={() => {

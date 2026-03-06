@@ -129,6 +129,12 @@ function Welcome({children}:Props) {
 
    },[canmove])
 
+   useEffect(() => {
+  if (!session && !isPending) {
+    navigate('/')
+  }
+}, [session, isPending, navigate])
+
    function handleUserSet(){
       
     if(!session?.user.email){
@@ -147,7 +153,7 @@ function Welcome({children}:Props) {
     return children
    }
 
-   if(!session && !isPending) return navigate('/')
+   
 
   return (
     <div className='min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-0'>
