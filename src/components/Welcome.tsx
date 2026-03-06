@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import type { ReactNode } from 'react';
 import AnimateUser from './AnimateUser';
+import { useNavigate } from 'react-router-dom';
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
 
@@ -35,6 +36,7 @@ function Welcome({children}:Props) {
   const messageIdRef = useRef(0)
   const timeoutsRef = useRef<number[]>([])
   const hasCheckedRef = useRef(false)
+  const navigate= useNavigate()
  
 
 
@@ -144,6 +146,8 @@ function Welcome({children}:Props) {
    if( canmove  ) {
     return children
    }
+
+   if(!session && !isPending) return navigate('/')
 
   return (
     <div className='min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-0'>
