@@ -26,6 +26,8 @@ import customnotificationRoute from './routes/customnotification.js'
 import telegramverifyRoute from './routes/telegramverify.js'
 import taskactivityRoute from './routes/gettaskactivity.js'
 import dashboardRoute from './routes/dashboard.js'
+import settingRoute from './routes/setting.js'
+import deleteRoute from './routes/delete.js'
 import { toNodeHandler } from "better-auth/node";
 import { auth } from './utils/auth.js'
 import { fileURLToPath } from 'url'
@@ -248,6 +250,8 @@ app.use('/api',customnotificationRoute)
 app.use('/api',telegramverifyRoute)
 app.use('/api',taskactivityRoute)
 app.use('/api',dashboardRoute)
+app.use('/api',settingRoute)
+app.use('/api',deleteRoute)
 const currentDir= path.dirname(fileURLToPath(import.meta.url))
 
 let httpServer

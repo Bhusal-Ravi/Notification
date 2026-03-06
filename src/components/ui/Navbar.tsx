@@ -1,5 +1,5 @@
 import  { useEffect, useState } from 'react'
-import { GitFork, LayoutDashboard, Sidebar, Menu, Settings, X } from 'lucide-react';
+import { GitFork, LayoutDashboard, Sidebar, Menu, Settings, X, Home } from 'lucide-react';
 import Login from '../Login';
 import { authClient } from '../../../lib/auth-client';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,7 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
      const [showLogout, setShowLogout] = useState(false)
      const [showMobileMenu, setShowMobileMenu] = useState(false)
      const [imgError, setImgError] = useState(false)
+     const [hoveredButton, setHoveredButton] = useState<string | null>(null)
     const { data: session,isPending } = authClient.useSession()
     const navigate = useNavigate()
 
@@ -78,46 +79,106 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
       
       {/* Left Section - Sidebar and Logo */}
       <div className='flex flex-row justify-center items-center gap-3 md:gap-5'>
-        <div className='bg-black rounded-md'>
-   {session && ( 
-    <button
-        onClick={() => setSidebar(!sidebar)}
-        className='bg-[#ffff00] flex items-center justify-center px-2 py-1 -translate-x-1 -translate-y-1 border-black border-2 rounded-md hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer'
-    >
-        <Sidebar strokeWidth={1.5} size={22}/>
-    </button>)
-}
-</div>
 
-    
-         <button onClick={()=>navigate('/')} className='bg-black rounded-md hidden md:block'>
-            <span className=' bg-[#ffff00] block px-3 md:px-4 py-2 md:py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-               <p className='font-bold text-lg md:text-xl'>N</p>
+        {/* Sidebar button with Activity Logs tooltip */}
+        <div
+          className='bg-black rounded-md relative'
+          onMouseEnter={() => setHoveredButton('sidebar')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          {session && (
+            <button
+              onClick={() => setSidebar(!sidebar)}
+              className='bg-[#ffff00] flex items-center justify-center px-2 py-1 -translate-x-1 -translate-y-1 border-black border-2 rounded-md hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer'
+            >
+              <Sidebar strokeWidth={1.5} size={22}/>
+            </button>
+          )}
+          {hoveredButton === 'sidebar' && session && (
+            <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-[#ffff00] text-xs font-semibold rounded whitespace-nowrap border-[2px] border-black'>
+              Activity Logs
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: N Logo — navigates to '/' */}
+        <div className='relative hidden md:block'>
+          <button onClick={() => navigate('/')} className='bg-black rounded-md'>
+            <span className='bg-[#ffff00] flex items-center justify-center px-3 md:px-4 py-2 md:py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+              <p className='font-bold text-lg md:text-xl m-0'>N</p>
             </span>
+          </button>
+        </div>
+
+        {/* Mobile: Circular N button — navigates to '/' */}
+        <button onClick={() => navigate('/')} className='bg-black rounded-full md:hidden'>
+          <span className='bg-[#ffff00] flex items-center justify-center w-10 h-10 -translate-x-1 -translate-y-1 border-black border-2 rounded-full text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+            <p className='font-bold text-lg'>N</p>
+          </span>
         </button>
 
-        {/* Mobile: Circular Icon Button */}
-        <button onClick={()=>navigate('/')} className='bg-black rounded-full md:hidden'>
-            <span className='bg-[#ffff00] flex items-center justify-center w-10 h-10 -translate-x-1 -translate-y-1 border-black border-2 rounded-full text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-               <p className='font-bold text-lg'>N</p>
-            </span>
-        </button>
+
+
       </div>
 
       {/* Right Section - Desktop Menu */}
       <div className='hidden md:flex flex-row justify-center items-center gap-2 md:gap-4 ml-auto'>
        
-       <button className='bg-black rounded-md'>
-            <span className=' bg-[#ffff00] block px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-               <a href='https://github.com/Bhusal-Ravi/Notification' target="_blank" className='flex flex-row justify-center items-center gap-2'><GitFork strokeWidth={1.5} size={18}/> <p className='font-semibold text-sm'>Fork</p></a> 
-            </span>
-        </button>
+       <div className='relative'>
+         <button className='bg-black rounded-md' onMouseEnter={() => setHoveredButton('fork')} onMouseLeave={() => setHoveredButton(null)}>
+              <span className='bg-[#ffff00] flex items-center justify-center px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+                 <a href='https://github.com/Bhusal-Ravi/Notification' target="_blank" className='flex items-center justify-center'><GitFork strokeWidth={1.5} size={18}/></a> 
+              </span>
+          </button>
+          {hoveredButton === 'fork' && (
+            <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-[#ffff00] text-xs font-semibold rounded whitespace-nowrap border-[2px] border-black'>
+              Fork
+            </div>
+          )}
+       </div>
 
-     {(!isPending && session) && (<button onClick={()=>navigate('/dashboard')} className='bg-black rounded-md'>
-            <span className=' bg-[#ffff00] block px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
-               <p className='flex flex-row cursor-pointer justify-center items-center gap-2'><LayoutDashboard strokeWidth={1.5} size={18}/> <span className='font-semibold text-sm'>Dashboard</span></p> 
-            </span>
-        </button> )} 
+       <div className='relative' onMouseEnter={() => setHoveredButton('home')} onMouseLeave={() => setHoveredButton(null)}>
+         <button onClick={() => navigate('/main')} className='bg-black rounded-md'>
+              <span className='bg-[#ffff00] flex items-center justify-center px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+                 <Home strokeWidth={1.5} size={18}/>
+              </span>
+          </button>
+          {hoveredButton === 'home' && (
+            <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-[#ffff00] text-xs font-semibold rounded whitespace-nowrap border-[2px] border-black'>
+              Home
+            </div>
+          )}
+       </div>
+
+     {(!isPending && session) && (
+       <div className='relative'>
+         <button onClick={()=>navigate('/dashboard')} className='bg-black rounded-md' onMouseEnter={() => setHoveredButton('dashboard')} onMouseLeave={() => setHoveredButton(null)}>
+              <span className='bg-[#ffff00] flex items-center justify-center px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+                 <LayoutDashboard strokeWidth={1.5} size={18}/>
+              </span>
+          </button>
+          {hoveredButton === 'dashboard' && (
+            <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-[#ffff00] text-xs font-semibold rounded whitespace-nowrap border-[2px] border-black'>
+              Dashboard
+            </div>
+          )}
+       </div>
+     )} 
+
+      {(!isPending && session) && (
+        <div className='relative'>
+          <button onClick={()=>navigate('/settings')} className='bg-black rounded-md' onMouseEnter={() => setHoveredButton('settings')} onMouseLeave={() => setHoveredButton(null)}>
+               <span className='bg-[#ffff00] flex items-center justify-center px-3 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-md text-sm hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all'>
+                  <Settings strokeWidth={1.5} size={18}/>
+               </span>
+           </button>
+           {hoveredButton === 'settings' && (
+            <div className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-[#ffff00] text-xs font-semibold rounded whitespace-nowrap border-[2px] border-black'>
+              Settings
+            </div>
+          )}
+        </div>
+      )} 
 
       {isPending? (<span className=' border-[3px] border-black text-black text-lg flex items-center justify-center px-3 py-2 font-black'>
            Loading
@@ -183,6 +244,16 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
                 className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-black border-2 rounded-t-md text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
               >
                 <GitFork strokeWidth={1.5} size={18}/> Fork
+              </button>
+
+              <button
+                onClick={() => {
+                  navigate('/main')
+                  setShowMobileMenu(false)
+                }}
+                className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-l-black border-r-black border-t-black border-2 text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
+              >
+                <Home strokeWidth={1.5} size={18}/> Home
               </button>
 
               {(!isPending && session) &&(<button 

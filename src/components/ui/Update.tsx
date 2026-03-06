@@ -1,4 +1,4 @@
-import { RefreshCcw, AlertCircle, Clock, Calendar, Globe, CheckCircle, ChevronDown } from 'lucide-react'
+import { RefreshCcw, AlertCircle, Clock, Calendar, Globe, CheckCircle, ChevronDown, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import TimezoneSelect from "react-timezone-select"
@@ -94,17 +94,20 @@ const FieldLabel = ({ icon: Icon, children }: { icon: React.ElementType; childre
 )
 
 //  Task Card ─
-function TaskCard({ index, field, control, register, userid, showStatusCard }: {
+function TaskCard({ index, field, control, register, userid, showStatusCard, onDelete }: {
   index: number
   field: UserTask & { id: string }
   control: any
   register: any
   userid: string
   showStatusCard: (text: string, variant: 'success' | 'error') => void
+  onDelete: (taskid: number) => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [showConfirmMsg, setShowConfirmMsg] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const notifType = field.notification_type
   const meta = TYPE_META[notifType]
@@ -150,7 +153,29 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
     }
   }
 
+  async function handleDelete() {
+    setIsDeleting(true)
+    try {
+      const base = API_BASE_URL ? `${API_BASE_URL}` : ''
+      const response = await fetch(`${base}/api/deletetask/${userid}/${field.taskid}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message)
+      showStatusCard(`"${field.taskname}" deleted!`, 'success')
+      setShowDeleteModal(false)
+      onDelete(field.taskid)
+    } catch (err: any) {
+      showStatusCard(err?.message ?? 'Delete failed', 'error')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
@@ -206,6 +231,16 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
             )
           }}
         />
+
+        {/* Delete button */}
+        <button
+          type="button"
+          onClick={() => setShowDeleteModal(true)}
+          className="shrink-0 flex items-center justify-center border-[2.5px] border-[#1a1a1a] p-2 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#1a1a1a] transition-all hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          style={{ backgroundColor: '#ffb5bd', color: '#1a1a1a' }}
+        >
+          <Trash2 size={14} strokeWidth={2.5} />
+        </button>
 
         {/* Expand button */}
         <button
@@ -411,11 +446,66 @@ function TaskCard({ index, field, control, register, userid, showStatusCard }: {
         )}
       </AnimatePresence>
     </motion.div>
+
+    {/* Delete confirmation modal */}
+    {showDeleteModal && createPortal(
+      <>
+        <div className="fixed inset-0 bg-[#1a1a1a]/60 backdrop-blur-sm z-50" onClick={() => !isDeleting && setShowDeleteModal(false)} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="border-[3px] border-[#1a1a1a] bg-[#faf6ef] shadow-[8px_8px_0_#1a1a1a] max-w-md w-full"
+          >
+            <div className="h-[6px] border-b-[3px] border-[#1a1a1a] bg-[#ffb5bd]" />
+            <div className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="border-[3px] border-[#1a1a1a] bg-[#ffb5bd] p-2">
+                  <Trash2 size={20} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-black uppercase mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.03em' }}>
+                    Delete Task?
+                  </h3>
+                  <p className="text-sm font-bold text-[#1a1a1a]/70">
+                    Are you sure you want to delete <span className="text-[#1a1a1a] font-black">"{field.taskname}"</span>? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={isDeleting}
+                  className="border-[3px] border-[#1a1a1a] bg-white px-4 py-2 text-[11px] font-black uppercase tracking-wider shadow-[3px_3px_0_#1a1a1a] transition-all hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="border-[3px] border-[#1a1a1a] bg-[#ffb5bd] px-4 py-2 text-[11px] font-black uppercase tracking-wider shadow-[3px_3px_0_#1a1a1a] transition-all hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting
+                    ? <span className="flex items-center gap-2"><Spinner size={13} /> Deleting…</span>
+                    : 'Delete Task'
+                  }
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </>,
+      document.body
+    )}
+    </>
   )
 }
 
 //  Task Section 
-function TaskSection({ title, type, fields, control, register, userid, showStatusCard }: {
+function TaskSection({ title, type, fields, control, register, userid, showStatusCard, onDelete }: {
   title: string
   type: NotificationType
   fields: (UserTask & { id: string })[]
@@ -423,6 +513,7 @@ function TaskSection({ title, type, fields, control, register, userid, showStatu
   register: any
   userid: string
   showStatusCard: (text: string, variant: 'success' | 'error') => void
+  onDelete: (taskid: number) => void
 }) {
   const filtered = fields.map((f, i) => ({ field: f, index: i })).filter(({ field }) => field.notification_type === type)
   if (filtered.length === 0) return null
@@ -452,6 +543,7 @@ function TaskSection({ title, type, fields, control, register, userid, showStatu
             register={register}
             userid={userid}
             showStatusCard={showStatusCard}
+            onDelete={onDelete}
           />
         ))}
       </div>
@@ -484,6 +576,12 @@ function Update({ userid, showStatusCard }: UpdateProps) {
     } finally {
       setRefreshingTasks(false)
     }
+  }
+
+  function handleDeleteTask(taskid: number) {
+    // Remove the task from the form state
+    const currentTasks = typedFields.filter(task => task.taskid !== taskid)
+    reset({ tasks: currentTasks })
   }
 
   useEffect(() => {
@@ -556,9 +654,9 @@ function Update({ userid, showStatusCard }: UpdateProps) {
       )}
 
       {/* Task sections */}
-      <TaskSection title="Interval Notifications"        type="first"  fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
-      <TaskSection title="Daily Fixed-Time Notifications" type="second" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
-      <TaskSection title="Scheduled One-Time Notifications" type="third" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} />
+      <TaskSection title="Interval Notifications"        type="first"  fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} onDelete={handleDeleteTask} />
+      <TaskSection title="Daily Fixed-Time Notifications" type="second" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} onDelete={handleDeleteTask} />
+      <TaskSection title="Scheduled One-Time Notifications" type="third" fields={typedFields} control={control} register={register} userid={userid} showStatusCard={showStatusCard} onDelete={handleDeleteTask} />
     </div>
   )
 }
