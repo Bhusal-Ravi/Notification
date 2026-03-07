@@ -13,7 +13,7 @@ import Sessionverify from './components/Sessionverify.tsx';
 import Telegramverify from './components/Telegramverify.tsx';
 import Dashboard from './components/Dashboard.tsx';
 import Setting from './components/ui/Setting.tsx';
-
+import { Analytics } from '@vercel/analytics/react';
 
 
 
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-
+      <Analytics />
     <RouterProvider router={router}/>
    
   

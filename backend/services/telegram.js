@@ -149,62 +149,62 @@ Welcome to the Notification Team `)
 })
 
 
-bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
-  console.log("helllo")
-  const chatId = msg.chat.id;
-  const telegramUserId = msg.from.id;
-  const email = match[1].trim().toLowerCase();
-  console.log(email)
-    if(!email){
-       return  await bot.sendMessage(chatId, ` Please type your email foreg:
-/activateNotify test@gmail.com`);
-    }
+// bot.onText(/\/activateNotify\s+(.+)/,async  (msg,match) => {
+//   console.log("helllo")
+//   const chatId = msg.chat.id;
+//   const telegramUserId = msg.from.id;
+//   const email = match[1].trim().toLowerCase();
+//   console.log(email)
+//     if(!email){
+//        return  await bot.sendMessage(chatId, ` Please type your email foreg:
+// /activateNotify test@gmail.com`);
+//     }
 
-    const client = await pool.connect();
+//     const client = await pool.connect();
 
-    try{
-      await client.query('BEGIN');
+//     try{
+//       await client.query('BEGIN');
 
-      const userRes= await client.query(`select userid from userinfo where email=$1`,[email])
+//       const userRes= await client.query(`select userid from userinfo where email=$1`,[email])
 
-      if(!userRes.rows.length){
-        throw new Error (`EMAIL_NOT_REGISTERED`)
-      }
+//       if(!userRes.rows.length){
+//         throw new Error (`EMAIL_NOT_REGISTERED`)
+//       }
 
-      const userId=userRes.rows[0].userid;
-      console.log(userId)
+//       const userId=userRes.rows[0].userid;
+//       console.log(userId)
 
-      const telegramRes= await client.query(`select 1 from telegramusers where telegram_user_id=$1`,[telegramUserId])
-      ''
-      if(telegramRes.rowCount>0){
-        throw new Error (`TELEGRAM_ALREADY_LINKED`)
-      }
+//       const telegramRes= await client.query(`select 1 from telegramusers where telegram_user_id=$1`,[telegramUserId])
+//       ''
+//       if(telegramRes.rowCount>0){
+//         throw new Error (`TELEGRAM_ALREADY_LINKED`)
+//       }
 
-      await client.query(`insert into telegramUsers(userid,telegram_user_id,chat_id)
-                          values 
-                          ($1,$2,$3)`,[userId,telegramUserId,chatId])
+//       await client.query(`insert into telegramUsers(userid,telegram_user_id,chat_id)
+//                           values 
+//                           ($1,$2,$3)`,[userId,telegramUserId,chatId])
 
-      await client.query('COMMIT')
+//       await client.query('COMMIT')
 
-      await bot.sendMessage(chatId, `✅ You are officially registered to the notification system under [${email}]`)
-    }catch (err) {
-  if (client) {
-    await client.query('ROLLBACK');
-  }
-      console.log(err)
-  if (err.message === 'EMAIL_NOT_REGISTERED') {
-   await  bot.sendMessage(chatId, '❌ Email not registered with us');
-  } else if (err.message === 'TELEGRAM_ALREADY_LINKED') {
-   await  bot.sendMessage(chatId, '⚠️ This Telegram account is already linked');
-  } else {
-   await  bot.sendMessage(chatId, '❌ Something went wrong');
-  }
-}finally {
-  if(client) client.release();
-}
+//       await bot.sendMessage(chatId, `✅ You are officially registered to the notification system under [${email}]`)
+//     }catch (err) {
+//   if (client) {
+//     await client.query('ROLLBACK');
+//   }
+//       console.log(err)
+//   if (err.message === 'EMAIL_NOT_REGISTERED') {
+//    await  bot.sendMessage(chatId, '❌ Email not registered with us');
+//   } else if (err.message === 'TELEGRAM_ALREADY_LINKED') {
+//    await  bot.sendMessage(chatId, '⚠️ This Telegram account is already linked');
+//   } else {
+//    await  bot.sendMessage(chatId, '❌ Something went wrong');
+//   }
+// }finally {
+//   if(client) client.release();
+// }
 
   
-})
+// })
 
 bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -306,78 +306,78 @@ bot.onText(/\/(water|exercise|study)$/, async (msg, match) => {
 
 
 
-bot.onText(/\/input\s+(.+)/, async  (msg,match) => {
+// bot.onText(/\/input\s+(.+)/, async  (msg,match) => {
 
-const chatId= msg.chat.id
-const telegramUserId=msg.from.id
-const command= msg.text.split(' ')[0]?.toLowerCase()
-const message=msg.text.split(' ')[1]?.toLowerCase()
+// const chatId= msg.chat.id
+// const telegramUserId=msg.from.id
+// const command= msg.text.split(' ')[0]?.toLowerCase()
+// const message=msg.text.split(' ')[1]?.toLowerCase()
 
-const client= await pool.connect()
+// const client= await pool.connect()
  
-  if(!['water', 'exercise', 'study'].includes(message)){ 
-    return await bot.sendMessage(chatId,`If you want to register your performed task
-these are the available commands 
-[ 1) /input water ]
-[ 2) /input exercise ]
-[ 3) /input study ]`)
-  }
+//   if(!['water', 'exercise', 'study'].includes(message)){ 
+//     return await bot.sendMessage(chatId,`If you want to register your performed task
+// these are the available commands 
+// [ 1) /input water ]
+// [ 2) /input exercise ]
+// [ 3) /input study ]`)
+//   }
 
-  await client.query('BEGIN')
+//   await client.query('BEGIN')
 
 
-        try{
-          const userCheck= await client.query(`select 1 from userinfo u
-                                                join taskuser tu 
-                                                on u.userid=tu.userid
-                                                join telegramusers t 
-                                                on t.userid=u.userid
-                                                where tu.taskid=$1 and 
-                                                tu.isactive=$2 and 
-                                                t.telegram_user_id=$3`,[message==='water'?1:message==='exercise'?2:3,true,telegramUserId])
+//         try{
+//           const userCheck= await client.query(`select 1 from userinfo u
+//                                                 join taskuser tu 
+//                                                 on u.userid=tu.userid
+//                                                 join telegramusers t 
+//                                                 on t.userid=u.userid
+//                                                 where tu.taskid=$1 and 
+//                                                 tu.isactive=$2 and 
+//                                                 t.telegram_user_id=$3`,[message==='water'?1:message==='exercise'?2:3,true,telegramUserId])
           
-          if(userCheck.rowCount===0){
-         return  await  bot.sendMessage(chatId,`❌ You might not be registered with us
-or You may not have activated the particular service `)
-          }
+//           if(userCheck.rowCount===0){
+//          return  await  bot.sendMessage(chatId,`❌ You might not be registered with us
+// or You may not have activated the particular service `)
+//           }
 
           
-          const updateUserActivity= await client.query(`update taskuser
-                                                        set last_user_activity=now()
-                                                        where userid=(select userid 
-                                                        from telegramusers where telegram_user_id=$1)
-                                                        and taskid=$2 and isactive=$3`,[telegramUserId,message==='water'?1:message==='exercise'?2:3,true])
+//           const updateUserActivity= await client.query(`update taskuser
+//                                                         set last_user_activity=now()
+//                                                         where userid=(select userid 
+//                                                         from telegramusers where telegram_user_id=$1)
+//                                                         and taskid=$2 and isactive=$3`,[telegramUserId,message==='water'?1:message==='exercise'?2:3,true])
             
 
-          if(updateUserActivity.rowCount===0){
-           throw new Error(`updateUserActivity_error`)
-          }
+//           if(updateUserActivity.rowCount===0){
+//            throw new Error(`updateUserActivity_error`)
+//           }
           
 
-          const activityCountUpdate= await client.query(`insert into taskactivity(userid,taskid)
-                                                        values(
-                                                        (select userid 
-                                                        from telegramusers 
-                                                        where telegram_user_id=$1),
-                                                        $2
-                                                        )`,[telegramUserId,message==='water'?1:message==='exercise'?2:3])
-            if(activityCountUpdate.rowCount===0){
-           throw new Error(`activityCountUpdate_error`)
-          }else {
-            await bot.sendMessage(chatId,`✅ Successfully updated your ${message} activity input`)
-          }
+//           const activityCountUpdate= await client.query(`insert into taskactivity(userid,taskid)
+//                                                         values(
+//                                                         (select userid 
+//                                                         from telegramusers 
+//                                                         where telegram_user_id=$1),
+//                                                         $2
+//                                                         )`,[telegramUserId,message==='water'?1:message==='exercise'?2:3])
+//             if(activityCountUpdate.rowCount===0){
+//            throw new Error(`activityCountUpdate_error`)
+//           }else {
+//             await bot.sendMessage(chatId,`✅ Successfully updated your ${message} activity input`)
+//           }
 
                 
-          await client.query('COMMIT')
+//           await client.query('COMMIT')
           
-          }catch(error){
-            if (client) {
-              await client.query('ROLLBACK')
-            }
+//           }catch(error){
+//             if (client) {
+//               await client.query('ROLLBACK')
+//             }
            
-              await bot.sendMessage(chatId,'❌ Could not perform your task at the moment')
-        }finally {
-          if(client) client.release()
-        }
-})
+//               await bot.sendMessage(chatId,'❌ Could not perform your task at the moment')
+//         }finally {
+//           if(client) client.release()
+//         }
+// })
 
