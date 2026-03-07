@@ -268,7 +268,11 @@ function Navbar({ sidebar, setSidebar,setClearSidebar,clearSidebar }: NavbarProp
 )}
 
               {(!isPending && session) &&(<button 
-                onClick={() => setShowMobileMenu(false)}
+                onClick={() =>{
+                  
+                  navigate('/settings')
+                  setShowMobileMenu(false)}}
+                
                 className='bg-[#ffff00] w-full block px-4 py-2 -translate-x-1 -translate-y-1 border-l-black border-r-black border-t-black border-2 text-sm font-semibold hover:-translate-y-2 hover:-translate-x-2 active:translate-x-0 active:translate-y-0 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap'
               >
                 <Settings strokeWidth={1.5} size={18}/> Settings

@@ -14,7 +14,7 @@ import { authClient } from "../../lib/auth-client";
 import Login from "./Login";
 
 export default function Home() {
-  const { data: session } = authClient.useSession();
+  const { data: session,isPending } = authClient.useSession();
 
   return (
     <div className="w-full">
@@ -55,7 +55,7 @@ export default function Home() {
             <Link to="/main" className="inline-block">
               <div className="rounded-md bg-black">
                 <span className="bg-[#FFFF00] inline-flex items-center gap-2 rounded-md border-2 border-black px-6 py-3 font-bold -translate-x-1 -translate-y-1 transition-all hover:-translate-x-2 hover:-translate-y-2 active:translate-x-0 active:translate-y-0">
-                  Get Started <ArrowRight className="w-5 h-5" />
+                  {isPending?"Loading ...":"Get Started"} <ArrowRight className="w-5 h-5" />
                 </span>
               </div>
             </Link>
@@ -64,18 +64,24 @@ export default function Home() {
           )}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-          className="mt-12"
-        >
-          <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-            <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-              Dashboard Preview
-            </span>
-          </div>
-        </motion.div>
+     <motion.div
+  initial={{ opacity: 0, y: 30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+  className="mt-12"
+>
+  <div className="relative w-full aspect-video rounded-md overflow-hidden border-2 border-dashed border-black bg-gray-200">
+    <iframe
+      className="absolute inset-0 w-full h-full"
+     src="https://www.youtube.com/embed/WuPl5TlE0fU?si=PuYOWY9NPzaYeZpb&autoplay=1&mute=1&modestbranding=1&rel=0&showinfo=0&controls=1&vq=hd1080"
+      title="YouTube video player"
+      
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerPolicy="strict-origin-when-cross-origin"
+      allowFullScreen
+    />
+  </div>
+</motion.div>
       </section>
 
       {/* HOW IT WORKS */}
@@ -186,18 +192,18 @@ export default function Home() {
             transition={{ delay: 0, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Telegram Reminders Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/telegram.png" 
+              alt="Telegram Reminders Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#ffff00]">
               <div className="flex items-center gap-2 mb-2">
                 <MessageCircle className="w-5 h-5" />
                 <h3 className="font-bold text-lg">Telegram Reminders</h3>
               </div>
               <p className="text-sm leading-relaxed">
-                Human-sounding reminders for water, exercise, and study sessions
+                Human-sounding reminders for unique tasks
                 sent right to your Telegram.
               </p>
             </div>
@@ -211,11 +217,11 @@ export default function Home() {
             transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Midnight Email Digest Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/email.png" 
+              alt="Midnight Email Digest Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#4ecdc4]">
               <div className="flex items-center gap-2 mb-2">
                 <Mail className="w-5 h-5" />
@@ -236,11 +242,11 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Quote of the Day Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/qotd.png" 
+              alt="Quote of the Day Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#ff6b6b]">
               <div className="flex items-center gap-2 mb-2">
                 <Quote className="w-5 h-5" />
@@ -261,11 +267,11 @@ export default function Home() {
             transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Custom Cadence Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/candance.png" 
+              alt="Custom Cadence Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#a78bfa]">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-5 h-5" />
@@ -286,11 +292,11 @@ export default function Home() {
             transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Timezone Aware Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/timezone.png" 
+              alt="Timezone Aware Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#ffff00]">
               <div className="flex items-center gap-2 mb-2">
                 <Globe className="w-5 h-5" />
@@ -310,11 +316,11 @@ export default function Home() {
             transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
             className="bg-white border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Daily Streaks Screenshot
-              </span>
-            </div>
+            <img 
+              src="/images/dailystreak.png" 
+              alt="Daily Streaks Screenshot"
+              className="w-full aspect-video object-cover border-b-2 border-black"
+            />
             <div className="p-5 border-t-4 border-[#4ecdc4]">
               <div className="flex items-center gap-2 mb-2">
                 <Flame className="w-5 h-5" />
@@ -349,11 +355,11 @@ export default function Home() {
             transition={{ delay: 0, duration: 0.5, ease: "easeOut" }}
             className="border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden bg-white transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video rounded-none">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Dashboard — Subscription Cards
-              </span>
-            </div>
+            <img 
+              src="/images/dashboard_preview.png" 
+              alt="Dashboard — Subscription Cards"
+              className="w-full aspect-video object-cover"
+            />
           </motion.div>
 
           <motion.div
@@ -363,11 +369,11 @@ export default function Home() {
             transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
             className="border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden bg-white transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video rounded-none">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Update Center — Cadence Settings
-              </span>
-            </div>
+            <img 
+              src="/images/updatecenter_preview.png" 
+              alt="Update Center — Cadence Settings"
+              className="w-full aspect-video object-cover"
+            />
           </motion.div>
 
           <motion.div
@@ -377,11 +383,11 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
             className="border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_#000] overflow-hidden bg-white transition-all hover:-translate-y-1"
           >
-            <div className="flex items-center justify-center rounded-md border-2 border-dashed border-black bg-gray-200 aspect-video rounded-none">
-              <span className="text-gray-400 font-bold text-sm md:text-base text-center px-4">
-                Telegram Bot — Conversation Preview
-              </span>
-            </div>
+            <img 
+              src="/images/telegramconversationpreview.png" 
+              alt="Telegram Bot — Conversation Preview"
+              className="w-full aspect-video object-cover"
+            />
           </motion.div>
         </div>
       </section>
@@ -405,7 +411,7 @@ export default function Home() {
             <Link to="/main" className="inline-block">
               <div className="rounded-md bg-black">
                 <span className="bg-white inline-flex items-center gap-2 rounded-md border-2 border-black px-6 py-3 font-bold -translate-x-1 -translate-y-1 transition-all hover:-translate-x-2 hover:-translate-y-2 active:translate-x-0 active:translate-y-0">
-                  Get Started <ArrowRight className="w-5 h-5" />
+                   {isPending?"Loading ...":"Get Started"}  <ArrowRight className="w-5 h-5" />
                 </span>
               </div>
             </Link>
