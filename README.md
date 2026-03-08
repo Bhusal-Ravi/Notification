@@ -18,7 +18,7 @@ A multi-channel notification system that helps you stay consistent with custom r
 
 ---
 
-## 📹 Video Demo
+## 📹 Video System Demo
 
 Watch a complete walkthrough of the platform:
 
