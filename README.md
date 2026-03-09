@@ -4,7 +4,7 @@
 
 **Your Habits, On Autopilot**
 
-A multi-channel notification system that helps you stay consistent with custom reminders, habit tracking, and automated daily summaries — all through Telegram and Email.
+A multi-channel notification system that helps you stay consistent with custom reminders, habit tracking, and automated daily summaries — all through Telegram and Daily updates through Email
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
@@ -111,7 +111,7 @@ No more typing commands! When you receive a Telegram reminder, simply tap:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      NOTIFICATION PLATFORM                       │
+│                      NOTIFICATION PLATFORM                      │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
@@ -119,29 +119,29 @@ No more typing commands! When you receive a Telegram reminder, simply tap:
 │  (Dashboard) │       │  + Socket.io │       │  (Sessions,  │
 │   Vite Dev   │       │              │       │   Tasks,     │
 └──────────────┘       └──────────────┘       │   Activity)  │
-										│                └──────────────┘
-										│
-										▼
-							  ┌──────────────┐
-							  │  BullMQ      │
-							  │  Scheduler   │
-							  │  (Redis)     │
-							  └──────────────┘
-										│
+			                      └──────────────┘
+						      │
+                                                      ▼
+                                                ┌──────────────┐
+                                                │  BullMQ      │
+                                                │  Scheduler   │ Queue
+                                                │  (Redis)     │
+                                                └──────────────┘
+						       │
 					  ┌────────────┼────────────┐
 					  │                         │
 					  ▼                         ▼
-			 ┌─────────────┐           ┌─────────────┐
-			 │  Telegram   │           │   Email     │
-			 │  Bot Worker │           │   Worker    │
-			 │  (Messages) │           │  (Resend)   │
-			 └─────────────┘           └─────────────┘
+                                    ┌─────────────┐           ┌─────────────┐
+                                    │  Telegram   │           │   Email     │
+                                    │  Bot Worker │           │   Worker    │
+                                    │  (Messages) │           │  (Resend)   │
+                                    └─────────────┘           └─────────────┘
 					  │                         │
 					  ▼                         ▼
-			 ┌─────────────┐           ┌─────────────┐
-			 │  Telegram   │           │   Gmail     │
-			 │   Users     │           │   Inbox     │
-			 └─────────────┘           └─────────────┘
+                                    ┌─────────────┐           ┌─────────────┐
+                                    │  Telegram   │           │   Gmail     │
+                                    │   Users     │           │   Inbox     │
+                                    └─────────────┘           └─────────────┘
 ```
 
 ### How It Works
@@ -603,7 +603,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-**Built with ❤️ by [Ravi Bhusal](https://github.com/Bhusal-Ravi)**
+**Built by [Ravi Bhusal](https://github.com/Bhusal-Ravi)**
 
 ⭐ **Star this repo if you find it helpful!** ⭐
 
