@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔔 Notification Platform
+# 🔔 Notification Platform Automate Your Habit
 
 **Your Habits, On Autopilot**
 
@@ -16,7 +16,7 @@ A multi-channel notification system that helps you stay consistent with custom r
 
 </div>
 
----
+----
 
 ## 📹 Video System Demo
 
