@@ -31,5 +31,6 @@ export const auth = betterAuth({
     "https://notification-beige-two.vercel.app",
      "https://localhost:5173",
     "https://localhost:3000",
+    "https://notification.portlify.me"
   ]
 });
