@@ -1,6 +1,7 @@
 <div align="center">
 
 # 🔔 Notification Platform Automate Your Habit
+## Telegram Based Alert System. This project was build with a purpose of understanding how Queues work on a system.
 
 **Your Habits, On Autopilot**
 
