@@ -108,6 +108,7 @@ const mailOptions = {
                                                 where (now() at time zone tu.timezone)::time >= '00:00'
                                                 and   (now() at time zone tu.timezone)::time < '00:05'
                                                 and   taskid=5
+                                                and   tu.isactive=true
                                                 and (tu.lastcheck at time zone tu.timezone)::date < (now() at time zone tu.timezone)::date`)
                 
                 
