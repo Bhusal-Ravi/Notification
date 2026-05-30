@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -15,6 +16,43 @@ import Login from "./Login";
 
 export default function Home() {
   const { data: session,isPending } = authClient.useSession();
+  const xEmbedRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = xEmbedRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const loadWidget = () => {
+      const twitter = window as Window & {
+        twttr?: {
+          widgets?: {
+            load: (element?: HTMLElement | null) => void;
+          };
+        };
+      };
+
+      twitter.twttr?.widgets?.load(container);
+    };
+
+    if (document.querySelector('script[src="https://platform.x.com/widgets.js"]')) {
+      loadWidget();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://platform.x.com/widgets.js";
+    script.async = true;
+    script.charset = "utf-8";
+    script.onload = loadWidget;
+    document.body.appendChild(script);
+
+    return () => {
+      script.onload = null;
+    };
+  }, []);
 
   return (
     <div className="w-full">
@@ -64,24 +102,39 @@ export default function Home() {
           )}
         </motion.div>
 
-     <motion.div
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-  className="mt-12"
->
-  <div className="relative w-full aspect-video rounded-md overflow-hidden border-2 border-dashed border-black bg-gray-200">
-    <iframe
-      className="absolute inset-0 w-full h-full"
-     src="https://www.youtube.com/embed/WuPl5TlE0fU?si=PuYOWY9NPzaYeZpb&autoplay=1&mute=1&modestbranding=1&rel=0&showinfo=0&controls=1&vq=hd1080"
-      title="YouTube video player"
-      
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerPolicy="strict-origin-when-cross-origin"
-      allowFullScreen
-    />
-  </div>
-</motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+          className="mt-12"
+        >
+          <div className="relative w-full rounded-md overflow-hidden border-2 border-dashed border-black bg-gray-200 px-4 py-6">
+            <div ref={xEmbedRef} className="x-embed-shell w-full flex justify-center">
+              <blockquote
+                className="twitter-tweet"
+                data-media-max-width="960"
+                data-dnt="true"
+                data-conversation="none"
+                data-align="center"
+                data-width="960"
+              >
+                <p lang="en" dir="ltr">
+                  I kept forgetting to drink water, workout. So I built a scheduler that sends me Telegram reminders and automates my habit . Here&apos;s how it works 👇
+                  <br />
+                  <br />
+                  Try it for free: <a href="https://t.co/HBwqmVmcQO">https://t.co/HBwqmVmcQO</a>
+                  <a href="https://x.com/hashtag/Productivity?src=hash&amp;ref_src=twsrc%5Etfw">#Productivity</a>{" "}
+                  <a href="https://x.com/hashtag/HabitTracking?src=hash&amp;ref_src=twsrc%5Etfw">#HabitTracking</a>{" "}
+                  <a href="https://x.com/hashtag/Automation?src=hash&amp;ref_src=twsrc%5Etfw">#Automation</a>{" "}
+                  <a href="https://x.com/hashtag/SoftwareDevelopment?src=hash&amp;ref_src=twsrc%5Etfw">#SoftwareDevelopment</a>{" "}
+                  <a href="https://x.com/hashtag/BuildInPublic?src=hash&amp;ref_src=twsrc%5Etfw">#BuildInPublic</a>{" "}
+                  <a href="https://t.co/WVRIFB01Vh">pic.twitter.com/WVRIFB01Vh</a>
+                </p>
+                &mdash; Ravi Bhusal (@RaviBhusal99965) <a href="https://x.com/RaviBhusal99965/status/2030197443560886359?ref_src=twsrc%5Etfw">March 7, 2026</a>
+              </blockquote>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* HOW IT WORKS */}

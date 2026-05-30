@@ -38,4 +38,15 @@
 		color: inherit;
 		min-height: 100vh;
 	}
+
+	.x-embed-shell,
+	.x-embed-shell iframe,
+	.x-embed-shell blockquote {
+		width: 100% !important;
+		max-width: none !important;
+	}
+
+	.x-embed-shell iframe {
+		display: block;
+	}
 }
