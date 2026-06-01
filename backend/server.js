@@ -278,7 +278,7 @@ export const io = new Server(httpServer, {
 import { registerSocketHandlers } from './websocket/socket.js'
 registerSocketHandlers(io)
 
-httpServer.listen(port, () => {
+httpServer.listen(port,'0.0.0.0', () => {
   console.log(`Server started on port ${port}`)
 })
 
