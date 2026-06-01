@@ -66,7 +66,7 @@ console.log('✅ All environment variables loaded');
 
 const serverState= process.env.DEVELOPEMENT
 
-const port=3000
+const PORT = process.env.PORT || 3000
 const app= express()
 app.set("trust proxy", 1);
 const corsOptions = {
@@ -278,10 +278,9 @@ export const io = new Server(httpServer, {
 import { registerSocketHandlers } from './websocket/socket.js'
 registerSocketHandlers(io)
 
-httpServer.listen(port,'0.0.0.0', () => {
-  console.log(`Server started on port ${port}`)
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server started on port ${PORT}`)
 })
-
 
 
 
